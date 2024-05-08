@@ -6,7 +6,6 @@ import { Box, Card, Grid } from '@mui/material';
 // project imports
 import SubCard from 'ui-component/cards/SubCard';
 import MainCard from 'ui-component/cards/MainCard';
-import SecondaryAction from 'ui-component/cards/CardSecondaryAction';
 import { gridSpacing } from 'store/constant';
 
 // ===============================|| SHADOW BOX ||=============================== //
@@ -35,7 +34,7 @@ ShadowBox.propTypes = {
 // ============================|| UTILITIES SHADOW ||============================ //
 
 const UtilitiesShadow = () => (
-  <MainCard title="Basic Shadow" secondary={<SecondaryAction link="https://next.material-ui.com/system/shadows/" />}>
+  <MainCard title="Stores Table">
     <Grid container spacing={gridSpacing}>
       <Grid item xs={12}>
         <SubCard title="Basic Shadow">

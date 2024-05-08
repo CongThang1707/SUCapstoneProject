@@ -1,19 +1,40 @@
-import { Grid, Link } from '@mui/material';
-import MuiTypography from '@mui/material/Typography';
-
+import { Grid, Paper } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 // project imports
-import SubCard from 'ui-component/cards/SubCard';
 import MainCard from 'ui-component/cards/MainCard';
-import SecondaryAction from 'ui-component/cards/CardSecondaryAction';
 import { gridSpacing } from 'store/constant';
 
 // ==============================|| TYPOGRAPHY ||============================== //
-
+const rows = [
+  { id: 1, name: 'John Doe', email: 'john.doe@example.com' },
+  { id: 2, name: 'Jane Smith', email: 'jane.smith@example.com' }
+  // Add more rows as needed
+];
 const Typography = () => (
-  <MainCard title="Basic Typography" secondary={<SecondaryAction link="https://next.material-ui.com/system/typography/" />}>
+  <MainCard title="Users Table">
     <Grid container spacing={gridSpacing}>
-      <Grid item xs={12} sm={6}>
-        <SubCard title="Heading">
+      <Grid item xs={12}>
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Name</TableCell>
+                <TableCell>Email</TableCell>
+                {/* Add more table headers if needed */}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rows.map((row) => (
+                <TableRow key={row.id}>
+                  <TableCell>{row.name}</TableCell>
+                  <TableCell>{row.email}</TableCell>
+                  {/* Add more table cells if needed */}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        {/* <SubCard title="Heading">
           <Grid container direction="column" spacing={1}>
             <Grid item>
               <MuiTypography variant="h1" gutterBottom>
@@ -115,7 +136,7 @@ const Typography = () => (
               </MuiTypography>
             </Grid>
           </Grid>
-        </SubCard>
+        </SubCard> */}
       </Grid>
     </Grid>
   </MainCard>

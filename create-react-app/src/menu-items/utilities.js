@@ -1,11 +1,11 @@
 // assets
-import { IconTypography, IconPalette, IconShadow, IconWindmill } from '@tabler/icons-react';
+import { IconUsers, IconBuildingStore, IconBrandMedium, IconWindmill } from '@tabler/icons-react';
 
 // constant
 const icons = {
-  IconTypography,
-  IconPalette,
-  IconShadow,
+  IconUsers,
+  IconBuildingStore,
+  IconBrandMedium,
   IconWindmill
 };
 
@@ -18,26 +18,26 @@ const utilities = {
   children: [
     {
       id: 'util-typography',
-      title: 'Typography',
+      title: 'Users',
       type: 'item',
       url: '/utils/util-typography',
-      icon: icons.IconTypography,
+      icon: icons.IconUsers,
       breadcrumbs: false
     },
     {
       id: 'util-color',
-      title: 'Color',
+      title: 'Brands',
       type: 'item',
       url: '/utils/util-color',
-      icon: icons.IconPalette,
+      icon: icons.IconBrandMedium,
       breadcrumbs: false
     },
     {
       id: 'util-shadow',
-      title: 'Shadow',
+      title: 'Stores',
       type: 'item',
       url: '/utils/util-shadow',
-      icon: icons.IconShadow,
+      icon: icons.IconBuildingStore,
       breadcrumbs: false
     },
     {
