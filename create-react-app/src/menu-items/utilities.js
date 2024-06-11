@@ -1,12 +1,13 @@
 // assets
-import { IconUsers, IconBuildingStore, IconBrandMedium, IconWindmill } from '@tabler/icons-react';
+import { IconUsers, IconBuildingStore, IconBrandMedium, IconWindmill, IconPackage } from '@tabler/icons-react';
 
 // constant
 const icons = {
   IconUsers,
   IconBuildingStore,
   IconBrandMedium,
-  IconWindmill
+  IconWindmill,
+  IconPackage
 };
 
 // ==============================|| UTILITIES MENU ITEMS ||============================== //
@@ -38,6 +39,14 @@ const utilities = {
       type: 'item',
       url: '/utils/util-shadow',
       icon: icons.IconBuildingStore,
+      breadcrumbs: false
+    },
+    {
+      id: 'util-product',
+      title: 'Products',
+      type: 'item',
+      url: '/utils/util-product',
+      icon: icons.IconPackage,
       breadcrumbs: false
     },
     {

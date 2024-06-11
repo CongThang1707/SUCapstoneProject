@@ -11,11 +11,14 @@ const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')))
 const UtilsTypography = Loadable(lazy(() => import('views/utilities/Typography')));
 const UtilsColor = Loadable(lazy(() => import('views/utilities/Color')));
 const UtilsShadow = Loadable(lazy(() => import('views/utilities/Shadow')));
+const UtilsProduct = Loadable(lazy(() => import('views/utilities/Product')));
 const UtilsMaterialIcons = Loadable(lazy(() => import('views/utilities/MaterialIcons')));
 const UtilsTablerIcons = Loadable(lazy(() => import('views/utilities/TablerIcons')));
 
 // sample page routing
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
+const StoreDetails = Loadable(lazy(() => import('views/sample-page/StoreDetails')));
+const ProductDetails = Loadable(lazy(() => import('views/sample-page/ProductDetails')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -64,6 +67,15 @@ const MainRoutes = {
       ]
     },
     {
+      path: 'utils',
+      children: [
+        {
+          path: 'util-product',
+          element: <UtilsProduct />
+        }
+      ]
+    },
+    {
       path: 'icons',
       children: [
         {
@@ -84,6 +96,14 @@ const MainRoutes = {
     {
       path: 'sample-page',
       element: <SamplePage />
+    },
+    {
+      path: 'store-details',
+      element: <StoreDetails />
+    },
+    {
+      path: 'product-details',
+      element: <ProductDetails />
     }
   ]
 };
