@@ -150,7 +150,7 @@ const UtilitiesShadow = () => {
               <TableBody>
                 {storeData.map((store) => (
                   <TableRow key={store.storeID}>
-                    <TableCell>{store.brandName}</TableCell>
+                    <TableCell>{store.brandID}</TableCell>
                     <TableCell>{store.storeLocation}</TableCell>
                     <TableCell>
                       <Button variant="contained" color="error" size="small" onClick={() => handleDelete(store.storeID)}>
