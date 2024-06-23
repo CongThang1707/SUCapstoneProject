@@ -1,7 +1,6 @@
 {
   "name": "berry-free-material-react-cra",
   "version": "3.4.2",
-  "proxy": "https://3.1.81.96",
   "private": true,
   "homepage": "https://berrydashboard.io/free",
   "dependencies": {
