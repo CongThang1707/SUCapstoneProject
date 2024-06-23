@@ -1,203 +1,291 @@
-import PropTypes from 'prop-types';
-
-// material-ui
-import { Box, Card, Grid, Typography } from '@mui/material';
-
-// project imports
-import SubCard from 'ui-component/cards/SubCard';
+import React, { useState, useEffect } from 'react';
 import MainCard from 'ui-component/cards/MainCard';
-import { gridSpacing } from 'store/constant';
+import axios from 'axios';
+import {
+  Box,
+  Grid,
+  Typography,
+  TextField,
+  InputAdornment,
+  Button,
+  TableContainer,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Paper,
+  Avatar,
+  Stack,
+  Snackbar,
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  CircularProgress
+} from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import { AddCircleOutlined, Visibility, Delete } from '@mui/icons-material';
+import ImageIcon from '@mui/icons-material/Image';
 
-// ===============================|| COLOR BOX ||=============================== //
+const UtilitiesBrand = () => {
+  const [brandData, setBrandData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [showAddBrandDialog, setShowAddBrandDialog] = useState(false);
+  // const navigate = useNavigate();
+  const [newBrandData, setNewBrandData] = useState({
+    brandName: '',
+    brandDescription: '',
+    brandImage: '',
+    brandContactEmail: ''
+  });
+  const [filter, setFilter] = useState('');
 
-const ColorBox = ({ bgcolor, title, data, dark }) => (
-  <>
-    <Card sx={{ mb: 3 }}>
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          py: 4.5,
-          bgcolor,
-          color: dark ? 'grey.800' : '#ffffff'
-        }}
-      >
-        {title && (
-          <Typography variant="subtitle1" color="inherit">
-            {title}
-          </Typography>
-        )}
-        {!title && <Box sx={{ p: 1.15 }} />}
-      </Box>
-    </Card>
-    {data && (
-      <Grid container justifyContent="space-between" alignItems="center">
-        <Grid item>
-          <Typography variant="subtitle2">{data.label}</Typography>
-        </Grid>
-        <Grid item>
-          <Typography variant="subtitle1" sx={{ textTransform: 'uppercase' }}>
-            {data.color}
-          </Typography>
+  const handleAddBrand = async () => {
+    try {
+      const response = await axios.post('https://3.1.81.96/api/Brands', newBrandData);
+      if (response.status === 201) {
+        // Successfully created new brand
+        setNewBrandData({
+          brandName: '',
+          brandDescription: '',
+          brandImage: '',
+          brandContactEmail: ''
+        });
+        setShowAddBrandDialog(false);
+        // Fetch the updated brand data after adding
+        const updatedResponse = await axios.get('https://3.1.81.96/api/Brands?pageNumber=1&pageSize=10');
+        setBrandData(updatedResponse.data);
+        setOpenSnackbar(true);
+        setSnackbarMessage('Brand added successfully!');
+      } else {
+        console.error('Error creating brand:', response);
+        setError(`Error: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error('Error creating brand:', error);
+      setError(`Error: ${error.message}`);
+    }
+  };
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setNewBrandData((prevState) => ({ ...prevState, [name]: value }));
+  };
+
+  const handleCloseAddBrandDialog = () => {
+    setShowAddBrandDialog(false);
+  };
+
+  useEffect(() => {
+    const fetchBrandData = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await axios.get('https://3.1.81.96/api/Brands?pageNumber=1&pageSize=10');
+        setBrandData(response.data);
+      } catch (error) {
+        console.error('Error fetching brand data:', error);
+        setError(error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchBrandData();
+  }, []);
+
+  const handleDeleteBrand = async (brandId) => {
+    try {
+      const response = await axios.delete(`https://3.1.81.96/api/Brands/${brandId}`);
+      if (response.status === 200) {
+        // Successfully deleted brand
+        setBrandData(brandData.filter((brand) => brand.brandID !== brandId));
+        setOpenSnackbar(true);
+        setSnackbarMessage('Brand deleted successfully!');
+      } else {
+        console.error('Error deleting brand:', response);
+        setError(`Error: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error('Error deleting brand:', error);
+      setError(`Error: ${error.message}`);
+    }
+  };
+
+  const filteredBrandData = brandData.filter((brand) => {
+    return (
+      brand.brandName.toLowerCase().includes(filter.toLowerCase()) || brand.brandContactEmail.toLowerCase().includes(filter.toLowerCase())
+    );
+  });
+
+  return (
+    <Box sx={{ flexGrow: 1, p: 3 }}>
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <MainCard title={<Typography variant="h5">Brand Table</Typography>}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 2 }}>
+              <TextField
+                label="Search"
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                variant="outlined"
+                fullWidth
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  )
+                }}
+                sx={{ mr: 2 }}
+              />
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => setShowAddBrandDialog(true)}
+                startIcon={<AddCircleOutlined />}
+                sx={{ borderRadius: 2, boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)' }}
+                size="small"
+              >
+                Add Brand
+              </Button>
+            </Box>
+            {isLoading ? (
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+                <CircularProgress />
+              </div>
+            ) : error ? (
+              <p>{error}</p>
+            ) : (
+              <TableContainer component={Paper} sx={{ maxHeight: 450, overflowY: 'auto' }}>
+                <Table stickyHeader aria-label="sticky table">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Brand Name</TableCell>
+                      <TableCell>Brand Logo</TableCell>
+                      <TableCell>Brand Contact</TableCell>
+                      <TableCell>Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {filteredBrandData.map((brand) => (
+                      <TableRow key={brand.brandID}>
+                        <TableCell>{brand.brandName}</TableCell>
+                        <TableCell>
+                          <Avatar
+                            alt={brand.brandName || 'Unknown Brand'}
+                            src={brand.brandImage}
+                            sx={{ width: 56, height: 56 }} // Adjust size as needed
+                          />
+                        </TableCell>
+                        <TableCell>{brand.brandContactEmail}</TableCell>
+                        <TableCell>
+                          <Stack direction="row" spacing={1}>
+                            <Button
+                              variant="outlined"
+                              color="error"
+                              size="small"
+                              onClick={() => handleDeleteBrand(brand.brandID)}
+                              startIcon={<Delete />} // Add delete icon
+                            >
+                              Delete
+                            </Button>
+                            <Button
+                              variant="outlined"
+                              color="info"
+                              size="small"
+                              onClick={() => handleViewDetails(brand)}
+                              startIcon={<Visibility />} // Add view details icon
+                            >
+                              View Details
+                            </Button>
+                          </Stack>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+          </MainCard>
         </Grid>
       </Grid>
-    )}
-  </>
-);
-
-ColorBox.propTypes = {
-  bgcolor: PropTypes.string,
-  title: PropTypes.string,
-  data: PropTypes.object.isRequired,
-  dark: PropTypes.bool
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={6000}
+        onClose={() => setOpenSnackbar(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert severity={snackbarMessage ? 'success' : 'error'}>{snackbarMessage}</Alert>
+      </Snackbar>
+      <Dialog open={showAddBrandDialog} onClose={handleCloseAddBrandDialog}>
+        <DialogTitle id="add-brand-dialog-title">Add New Brand</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="add-brand-dialog-description">Please enter the details of the new brand.</DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            name="brandName"
+            label="Brand Name"
+            type="text"
+            fullWidth
+            variant="standard"
+            value={newBrandData.brandName}
+            onChange={handleChange}
+          />
+          <TextField
+            margin="dense"
+            name="brandDescription"
+            label="Brand Description"
+            type="text"
+            fullWidth
+            variant="standard"
+            value={newBrandData.brandDescription}
+            onChange={handleChange}
+          />
+          <TextField
+            margin="dense"
+            name="brandImage"
+            label="Brand Logo URL"
+            type="text"
+            fullWidth
+            variant="standard"
+            value={newBrandData.brandImage}
+            onChange={handleChange}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <ImageIcon />
+                </InputAdornment>
+              )
+            }}
+          />
+          <TextField
+            margin="dense"
+            name="brandContactEmail"
+            label="Brand Contact Email"
+            type="text"
+            fullWidth
+            variant="standard"
+            value={newBrandData.brandContactEmail}
+            onChange={handleChange}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseAddBrandDialog}>Cancel</Button>
+          <Button variant="contained" onClick={handleAddBrand}>
+            Add Brand
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
 };
 
-// ===============================|| UI COLOR ||=============================== //
-
-const UIColor = () => (
-  <MainCard title="Brands Table">
-    <Grid container spacing={gridSpacing}>
-      <Grid item xs={12}>
-        <SubCard title="Primary Color">
-          <Grid container spacing={gridSpacing}>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="primary.light" data={{ label: 'Blue-50', color: '#E3F2FD' }} title="primary.light" dark />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="primary.200" data={{ label: 'Blue-200', color: '#90CAF9' }} title="primary[200]" dark />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="primary.main" data={{ label: 'Blue-500', color: '#2196F3' }} title="primary.main" />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="primary.dark" data={{ label: 'Blue-600', color: '#1E88E5' }} title="primary.dark" />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="primary.800" data={{ label: 'Blue-800', color: '#1565C0' }} title="primary[800]" />
-            </Grid>
-          </Grid>
-        </SubCard>
-      </Grid>
-      <Grid item xs={12}>
-        <SubCard title="Secondary Color">
-          <Grid container spacing={gridSpacing}>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="secondary.light" data={{ label: 'DeepPurple-50', color: '#ede7f6' }} title="secondary.light" dark />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="secondary.200" data={{ label: 'DeepPurple-200', color: '#b39ddb' }} title="secondary[200]" dark />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="secondary.main" data={{ label: 'DeepPurple-500', color: '#673ab7' }} title="secondary.main" />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="secondary.dark" data={{ label: 'DeepPurple-600', color: '#5e35b1' }} title="secondary.dark" />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="secondary.800" data={{ label: 'DeepPurple-800', color: '#4527a0' }} title="secondary[800]" />
-            </Grid>
-          </Grid>
-        </SubCard>
-      </Grid>
-      <Grid item xs={12}>
-        <SubCard title="Success Color">
-          <Grid container spacing={gridSpacing}>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="success.light" data={{ label: 'Green-A100', color: '#b9f6ca' }} title="success.light" dark />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="success.main" data={{ label: 'Green-A200', color: '#69f0ae' }} title="success[200]" />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="success.main" data={{ label: 'Green-A400', color: '#69f0ae' }} title="success.main" />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="success.dark" data={{ label: 'Green-A700', color: '#00c853' }} title="success.dark" />
-            </Grid>
-          </Grid>
-        </SubCard>
-      </Grid>
-      <Grid item xs={12}>
-        <SubCard title="Orange Color">
-          <Grid container spacing={gridSpacing}>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="orange.light" data={{ label: 'DeepOrange-50', color: '#fbe9e7' }} title="orange.light" dark />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="orange.main" data={{ label: 'DeepOrange-200', color: '#ffab91' }} title="orange.main" />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="orange.dark" data={{ label: 'DeepOrange-800', color: '#d84315' }} title="orange.dark" />
-            </Grid>
-          </Grid>
-        </SubCard>
-      </Grid>
-      <Grid item xs={12}>
-        <SubCard title="Error Color">
-          <Grid container spacing={gridSpacing}>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="error.light" data={{ label: 'Red-50', color: '#ef9a9a' }} title="error.light" dark />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="error.main" data={{ label: 'Red-200', color: '#f44336' }} title="error.main" />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="error.dark" data={{ label: 'Red-800', color: '#c62828' }} title="error.dark" />
-            </Grid>
-          </Grid>
-        </SubCard>
-      </Grid>
-      <Grid item xs={12}>
-        <SubCard title="Warning Color">
-          <Grid container spacing={gridSpacing}>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="warning.light" data={{ label: 'Amber-50', color: '#b9f6ca' }} title="warning.light" dark />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="warning.main" data={{ label: 'Amber-100', color: '#ffe57f' }} title="warning.main" dark />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="warning.dark" data={{ label: 'Amber-500', color: '#FFC107' }} title="warning.dark" />
-            </Grid>
-          </Grid>
-        </SubCard>
-      </Grid>
-      <Grid item xs={12}>
-        <SubCard title="Grey Color">
-          <Grid container spacing={gridSpacing}>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="grey.50" data={{ label: 'Grey-50', color: '#fafafa' }} title="grey[50]" dark />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="grey.100" data={{ label: 'Grey-100', color: '#f5f5f5' }} title="grey[100]" dark />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="grey.200" data={{ label: 'Grey-200', color: '#eeeeee' }} title="grey[200]" dark />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="grey.300" data={{ label: 'Grey-300', color: '#e0e0e0' }} title="grey[300]" dark />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="grey.500" data={{ label: 'Grey-500', color: '#9e9e9e' }} title="grey[500]" />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="grey.700" data={{ label: 'Grey-600', color: '#757575' }} title="grey[600]" />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="grey.700" data={{ label: 'Grey-700', color: '#616161' }} title="grey[700]" />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="grey.900" data={{ label: 'Grey-900', color: '#212121' }} title="grey[900]" />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={2}>
-              <ColorBox bgcolor="#fff" data={{ label: 'Pure White', color: '#ffffff' }} title="Pure White" dark />
-            </Grid>
-          </Grid>
-        </SubCard>
-      </Grid>
-    </Grid>
-  </MainCard>
-);
-
-export default UIColor;
+export default UtilitiesBrand;
