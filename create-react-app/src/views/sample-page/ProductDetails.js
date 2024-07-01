@@ -24,7 +24,7 @@ const ProductDetails = () => {
 
   const handleUpdateProduct = async () => {
     try {
-      const response = await axios.put(`https://3.1.81.96/api/Product?productId=${updatedProductData.productID}`, updatedProductData);
+      const response = await axios.put(`https://3.1.81.96/api/Products/${updatedProductData.productId}`, updatedProductData);
       if (response.status === 200) {
         // Update productData in location state (optional, but recommended)
         location.state.productData = response.data;
@@ -49,26 +49,16 @@ const ProductDetails = () => {
         {!isEditing ? (
           <>
             <p>Product ID: {productData.productId}</p>
-            <p>Brand ID: {productData.brandID}</p>
-            <p>Category ID: {productData.categoryID}</p>
+            <p>Category ID: {productData.categoryId}</p>
             <p>Product Name: {productData.productName}</p>
             <p>Product Description: {productData.productDescription}</p>
-            <p>Product Price: {productData.productPrice}</p>
           </>
         ) : (
           <>
             <TextField
-              label="Brand ID"
-              name="brandID"
-              value={updatedProductData.brandID}
-              onChange={handleChange}
-              fullWidth
-              margin="normal"
-            />
-            <TextField
               label="Category ID"
               name="categoryID"
-              value={updatedProductData.categoryID}
+              value={updatedProductData.categoryId}
               onChange={handleChange}
               fullWidth
               margin="normal"
@@ -85,14 +75,6 @@ const ProductDetails = () => {
               label="Product Description"
               name="productDescription"
               value={updatedProductData.productDescription}
-              onChange={handleChange}
-              fullWidth
-              margin="normal"
-            />
-            <TextField
-              label="Product Price"
-              name="productPrice"
-              value={updatedProductData.productPrice}
               onChange={handleChange}
               fullWidth
               margin="normal"

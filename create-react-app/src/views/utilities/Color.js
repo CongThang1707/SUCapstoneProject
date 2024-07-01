@@ -105,7 +105,7 @@ const UtilitiesBrand = () => {
       const response = await axios.delete(`https://3.1.81.96/api/Brands/${brandId}`);
       if (response.status === 200) {
         // Successfully deleted brand
-        setBrandData(brandData.filter((brand) => brand.brandID !== brandId));
+        setBrandData(brandData.filter((brand) => brand.brandId !== brandId));
         setOpenSnackbar(true);
         setSnackbarMessage('Brand deleted successfully!');
       } else {

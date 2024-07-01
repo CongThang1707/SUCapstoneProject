@@ -23,7 +23,7 @@ import {
   InputAdornment,
   Box,
   Typography,
-  Grid // Import additional components
+  Grid
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { AddCircleOutlined, Visibility, Delete } from '@mui/icons-material';
@@ -37,41 +37,54 @@ const UtilitiesProduct = () => {
   const [showAddProductDialog, setShowAddProductDialog] = useState(false);
   const navigate = useNavigate();
   const [newProductData, setNewProductData] = useState({
-    brandID: '',
-    categoryID: '',
+    categoryId: '',
     productName: '',
-    productDescription: '',
-    productPrice: ''
+    productDescription: ''
   });
   const [filter, setFilter] = useState('');
+  const [categoryMap, setCategoryMap] = useState({});
 
   const handleAddProduct = async () => {
     try {
-      const response = await axios.post('https://3.1.81.96/api/Product', newProductData);
+      const response = await axios.post('https://3.1.81.96/api/Products', newProductData);
       if (response.status === 201) {
         // Successfully created new product
         setNewProductData({
           brandID: '',
           categoryID: '',
           productName: '',
-          productDescription: '',
-          productPrice: ''
+          productDescription: ''
         });
         setShowAddProductDialog(false);
 
-        // Fetch the updated product data after adding
-        const updatedResponse = await axios.get('https://3.1.81.96/api/Product?pageNumber=1&pageSize=10');
-        setProductData(updatedResponse.data); // Update the state with the new data
+        // Fetch updated product and category data
+        const [updatedProductResponse, categoryResponse] = await Promise.all([
+          axios.get('https://3.1.81.96/api/Products?pageNumber=1&pageSize=10'),
+          axios.get('https://3.1.81.96/api/Categories?pageNumber=1&pageSize=10')
+        ]);
+
+        if (!updatedProductResponse.data || !categoryResponse.data) {
+          throw new Error('Missing data from API response');
+        }
+
+        const updatedProductData = updatedProductResponse.data.map((product) => ({
+          ...product,
+          categoryName: categoryResponse.data.find((c) => c.categoryId === product.categoryId)?.categoryName || 'Unknown Category'
+        }));
+
+        setProductData(updatedProductData);
 
         setOpenSnackbar(true);
         setSnackbarMessage('Product added successfully!');
       } else {
         console.error('Error creating product:', response);
-        setError(`Error: ${response.statusText}`);
+        // Check if the backend sent a specific error message
+        const errorMessage = response.data?.error || response.statusText;
+        setError(errorMessage); // Set the error message for display
       }
     } catch (error) {
       console.error('Error creating product:', error);
-      setError(`Error: ${error.message}`);
+      setError(`An error occurred: ${error.message}`); // Display a generic error message
     }
   };
 
@@ -87,25 +100,29 @@ const UtilitiesProduct = () => {
   useEffect(() => {
     const fetchProductData = async () => {
       setIsLoading(true);
-      setError(null); // Reset error state before fetching
+      setError(null);
 
       try {
-        const [productResponse, brandResponse, categoryResponse] = await Promise.all([
-          axios.get('https://3.1.81.96/api/Product?pageNumber=1&pageSize=10'),
-          axios.get('https://3.1.81.96/api/Brand?pageNumber=1&pageSize=10'),
-          axios.get('https://3.1.81.96/api/Category?pageNumber=1&pageSize=10') // Replace with your category API endpoint
+        const [productResponse, categoryResponse] = await Promise.all([
+          axios.get('https://3.1.81.96/api/Products?pageNumber=1&pageSize=10'),
+          axios.get('https://3.1.81.96/api/Categories?pageNumber=1&pageSize=10')
         ]);
-        const updatedProductData = productResponse.data.map((product) => ({
-          ...product,
-          brandName: brandResponse.data.find((brand) => brand.brandID === product.brandID)?.brandName || 'Unknown Brand',
-          categoryName:
-            categoryResponse.data.find((category) => category.categoryID === product.categoryID)?.categoryName || 'Unknown Category'
-        }));
 
-        setProductData(updatedProductData);
+        if (!productResponse.data || !categoryResponse.data) {
+          throw new Error('Missing data from API response');
+        }
+
+        // Create a map of categoryId to categoryName (correct property name)
+        const categoryMap = {};
+        categoryResponse.data.forEach((category) => {
+          categoryMap[category.categoryId] = category.categoryName; // Use categoryId here
+        });
+        setCategoryMap(categoryMap);
+
+        setProductData(productResponse.data); // Don't need to map category name here anymore
       } catch (error) {
         console.error('Error fetching product data:', error);
-        setError(error.message); // Store only the error message, not the entire object
+        setError(error.message);
       } finally {
         setIsLoading(false);
       }
@@ -116,10 +133,10 @@ const UtilitiesProduct = () => {
 
   const handleDelete = async (productId) => {
     try {
-      const response = await axios.delete(`https://3.1.81.96/api/Product?productId=${productId}`);
+      const response = await axios.delete(`https://3.1.81.96/api/Products/${productId}`);
       if (response.status === 200) {
         // Successfully deleted product
-        setProductData(productData.filter((product) => product.productID !== productId));
+        setProductData(productData.filter((product) => product.productId !== productId));
         setOpenSnackbar(true);
         setSnackbarMessage('Product deleted successfully!');
       } else {
@@ -137,10 +154,9 @@ const UtilitiesProduct = () => {
   };
 
   const filteredProductData = productData.filter((product) => {
-    const productNameMatch = product.productName.toLowerCase().includes(filter.toLowerCase());
-    const categoryIdMatch = product.categoryName.toLowerCase().includes(filter.toLowerCase()); // Convert categoryID to string for matching
-    const brandNameMatch = product.brandName.toLowerCase().includes(filter.toLowerCase());
-    return productNameMatch || categoryIdMatch || brandNameMatch;
+    const productNameMatch = product.productName?.toLowerCase().includes(filter.toLowerCase());
+    const categoryIdMatch = product.categoryName?.toLowerCase().includes(filter.toLowerCase());
+    return productNameMatch || categoryIdMatch;
   });
 
   return (
@@ -190,25 +206,21 @@ const UtilitiesProduct = () => {
                   <TableHead>
                     <TableRow>
                       <TableCell>Product Name</TableCell>
-                      <TableCell>Category ID</TableCell>
-                      <TableCell>Brand Name</TableCell>
-                      <TableCell>Product Price</TableCell>
-                      <TableCell>Actions</TableCell>
+                      <TableCell>Category</TableCell>
+                      <TableCell>Actions</TableCell> {/* Removed Brand Name column */}
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {filteredProductData.map((product) => (
                       <TableRow key={product.productID}>
                         <TableCell>{product.productName}</TableCell>
-                        <TableCell>{product.categoryName}</TableCell>
-                        <TableCell>{product.brandName}</TableCell>
-                        <TableCell>{product.productPrice}</TableCell>
+                        <TableCell>{categoryMap[product.categoryId] || 'Unknown Category'}</TableCell>
                         <TableCell sx={{ display: 'flex', gap: 1 }}>
                           <Button
                             variant="outlined"
                             color="error"
                             size="small"
-                            onClick={() => handleDelete(product.productID)}
+                            onClick={() => handleDelete(product.productId)}
                             startIcon={<Delete />} // Add delete icon
                             sx={{
                               color: 'error.main', // Ensure text color matches even when hovered
@@ -265,24 +277,13 @@ const UtilitiesProduct = () => {
         <DialogContent>
           <DialogContentText id="add-store-dialog-description">Please enter the details of the new product.</DialogContentText>
           <TextField
-            autoFocus
             margin="dense"
-            name="brandID"
-            label="Brand ID"
-            type="text"
-            fullWidth
-            variant="standard"
-            value={newProductData.brandID}
-            onChange={handleChange}
-          />
-          <TextField
-            margin="dense"
-            name="categoryID"
+            name="categoryId"
             label="Category ID"
             type="text"
             fullWidth
             variant="standard"
-            value={newProductData.categoryID}
+            value={newProductData.categoryId}
             onChange={handleChange}
           />
           <TextField
@@ -303,16 +304,6 @@ const UtilitiesProduct = () => {
             fullWidth
             variant="standard"
             value={newProductData.productDescription}
-            onChange={handleChange}
-          />
-          <TextField
-            margin="dense"
-            name="productPrice"
-            label="Product Price"
-            type="text"
-            fullWidth
-            variant="standard"
-            value={newProductData.productPrice}
             onChange={handleChange}
           />
         </DialogContent>
