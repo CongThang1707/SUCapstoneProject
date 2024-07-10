@@ -164,13 +164,11 @@ const UtilitiesProduct = () => {
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <MainCard title={<Typography variant="h5">Product Table</Typography>}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <TextField
-                label="Search"
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
                 variant="outlined"
-                fullWidth
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -178,7 +176,14 @@ const UtilitiesProduct = () => {
                     </InputAdornment>
                   )
                 }}
-                sx={{ mr: 2 }}
+                sx={{
+                  width: '500px',
+                  mr: 60, // Set a fixed width (adjust as needed)
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    paddingRight: 1
+                  }
+                }}
               />
               <Button
                 variant="contained"
@@ -186,8 +191,13 @@ const UtilitiesProduct = () => {
                 onClick={() => setShowAddProductDialog(true)}
                 startIcon={<AddCircleOutlined />}
                 sx={{
-                  borderRadius: 2, // Round the button corners
-                  boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)' // Add a subtle shadow
+                  borderRadius: 2,
+                  boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  px: 2, // Increase horizontal padding further
+                  py: 1.5,
+                  whiteSpace: 'nowrap' // Prevent text from wrapping
                 }}
                 size="small"
               >
@@ -218,23 +228,6 @@ const UtilitiesProduct = () => {
                         <TableCell sx={{ display: 'flex', gap: 1 }}>
                           <Button
                             variant="outlined"
-                            color="error"
-                            size="small"
-                            onClick={() => handleDelete(product.productId)}
-                            startIcon={<Delete />} // Add delete icon
-                            sx={{
-                              color: 'error.main', // Ensure text color matches even when hovered
-                              borderColor: 'error.main', // Ensure border color matches even when hovered
-                              '&:hover': {
-                                backgroundColor: 'error.light' // Lighten background on hover
-                              }
-                            }}
-                          >
-                            Delete
-                          </Button>
-
-                          <Button
-                            variant="outlined"
                             color="info"
                             size="small"
                             onClick={() => handleViewDetails(product)}
@@ -248,6 +241,22 @@ const UtilitiesProduct = () => {
                             }}
                           >
                             View Details
+                          </Button>
+                          <Button
+                            variant="outlined"
+                            color="error"
+                            size="small"
+                            onClick={() => handleDelete(product.productId)}
+                            startIcon={<Delete />} // Add delete icon
+                            sx={{
+                              color: 'error.main', // Ensure text color matches even when hovered
+                              borderColor: 'error.main', // Ensure border color matches even when hovered
+                              '&:hover': {
+                                backgroundColor: 'error.light' // Lighten background on hover
+                              }
+                            }}
+                          >
+                            Delete
                           </Button>
                         </TableCell>
                       </TableRow>
