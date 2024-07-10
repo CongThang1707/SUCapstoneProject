@@ -14,6 +14,7 @@ const UtilsShadow = Loadable(lazy(() => import('views/utilities/Shadow')));
 const UtilsProduct = Loadable(lazy(() => import('views/utilities/Product')));
 const UtilsMaterialIcons = Loadable(lazy(() => import('views/utilities/MaterialIcons')));
 const UtilsTablerIcons = Loadable(lazy(() => import('views/utilities/TablerIcons')));
+const UtilsTemplateIcons = Loadable(lazy(() => import('views/utilities/Template')));
 
 // sample page routing
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
@@ -72,6 +73,15 @@ const MainRoutes = {
         {
           path: 'util-product',
           element: <UtilsProduct />
+        }
+      ]
+    },
+    {
+      path: 'utils',
+      children: [
+        {
+          path: 'util-template',
+          element: <UtilsTemplateIcons />
         }
       ]
     },

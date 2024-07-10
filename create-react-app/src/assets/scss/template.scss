@@ -1,0 +1,186 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  font-family: 'Arial, sans-serif';
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: #343a40;
+  color: #fff;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+}
+
+.actions button {
+  margin-right: 15px;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #fff;
+}
+
+.save-btn {
+  background-color: #28a745;
+}
+
+.share-btn {
+  background-color: #007bff;
+}
+
+.profile {
+  margin-left: 15px;
+}
+
+.main {
+  display: flex;
+  flex: 1;
+}
+
+.sidebar-container {
+  display: flex;
+}
+
+
+
+.sidebar {
+  width: 100px;
+  background-color: #f8f9fa;
+  border-right: 1px solid #dee2e6;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sidebar button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 10px 0;
+  margin-bottom: 10px;
+  // background-color: #fff;
+  // border: 1px solid #dee2e6;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.sidebar button:hover {
+  background-color: #e2e6ea;
+}
+
+.sidebar button span {
+  margin-top: 5px;
+  font-size: 12px;
+}
+
+
+.tab-container {
+  position: absolute; /* Position it absolutely */
+  top: 70px; /* Offset by the header height */
+  left: 100px; /* Offset by the sidebar width */
+  background-color: #f1f3f5;
+  transition: opacity 0.3s ease-in-out; /* Add transition for opacity */
+  display: none;
+  z-index: 2; /* Ensure it appears on top */
+  opacity: 0; /* Start with opacity 0 */
+}
+
+.tab-container.open {
+  display: block;
+  padding: 20px;
+  opacity: 1; /* Set opacity to 1 when open */
+}
+
+.tab {
+  padding: 20px;
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+}
+
+.tab h4 {
+  margin-top: 0;
+}
+
+.tab button {
+  display: block;
+  width: 100%;
+  padding: 10px 15px;
+  margin-top: 10px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  cursor: pointer;
+}
+
+.tab button:hover {
+  background-color: #e2e6ea;
+}
+
+.canvas-area {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #fff;
+  position: relative; /* Ensure it stays relative to its container */
+  z-index: 1; /* Ensure it stays below the tab-container */
+}
+
+.canvas {
+  width: 65%;
+  height: 65%;
+  // border: 2px solid blue;
+  background-color: #f8f9fa;
+}
+
+.sample-canvas {
+  border: 3px solid salmon;
+  width: 100%;
+  height: 100%;
+}
+
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 1%;
+}
+
+.toolbar label {
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+}
+
+.toolbar select {
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  font-size: 14px;
+}
+
+.toolbar input[type="color"] {
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  width: 30px;
+  height: 30px;
+}
