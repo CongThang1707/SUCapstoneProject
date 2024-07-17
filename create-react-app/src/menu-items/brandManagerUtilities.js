@@ -42,10 +42,10 @@ const brandManagerUtilities = {
       breadcrumbs: false
     },
     {
-      id: 'util-product',
-      title: 'Products',
+      id: 'util-myproduct',
+      title: 'My Products',
       type: 'item',
-      url: '/utils/util-product',
+      url: '/utils/util-myproduct',
       icon: icons.IconPackage,
       breadcrumbs: false
     },
