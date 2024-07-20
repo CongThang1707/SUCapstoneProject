@@ -50,7 +50,6 @@ const UtilitiesProduct = () => {
       if (response.status === 201) {
         // Successfully created new product
         setNewProductData({
-          brandID: '',
           categoryID: '',
           productName: '',
           productDescription: ''

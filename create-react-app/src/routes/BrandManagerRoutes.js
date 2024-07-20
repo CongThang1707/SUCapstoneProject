@@ -12,6 +12,11 @@ const UtilsMaterialIcons = Loadable(lazy(() => import('views/utilities/MaterialI
 const UtilsTablerIcons = Loadable(lazy(() => import('views/utilities/TablerIcons')));
 const UtilsMyBrand = Loadable(lazy(() => import('views/utilities/MyBrand')));
 const UtilsMyProduct = Loadable(lazy(() => import('views/utilities/MyProduct')));
+const UtilsMyCategory = Loadable(lazy(() => import('views/utilities/MyCategory')));
+const UtilsMyCollection = Loadable(lazy(() => import('views/utilities/MyCollection')));
+const UtilsMyMenu = Loadable(lazy(() => import('views/utilities/MyMenu')));
+const UtilsMyTemplate = Loadable(lazy(() => import('views/utilities/MyTemplate')));
+const UtilsMyStore = Loadable(lazy(() => import('views/utilities/MyStore')));
 // sample entities routing
 const EntityTemplate = Loadable(lazy(() => import('views/entity/Template')));
 const EntityMenu = Loadable(lazy(() => import('views/entity/Menu')));
@@ -21,7 +26,6 @@ const StoreDetails = Loadable(lazy(() => import('views/sample-page/StoreDetails'
 const ProductDetails = Loadable(lazy(() => import('views/sample-page/ProductDetails')));
 const TemplateDetails = Loadable(lazy(() => import('views/sample-page/TemplateDetails')));
 const MenuDetails = Loadable(lazy(() => import('views/sample-page/MenuDetails')));
-
 // ==============================|| MAIN ROUTING ||============================== //
 
 const BrandManagerRoutes = {
@@ -65,6 +69,51 @@ const BrandManagerRoutes = {
         {
           path: 'util-myproduct',
           element: <UtilsMyProduct />
+        }
+      ]
+    },
+    {
+      path: 'utils',
+      children: [
+        {
+          path: 'util-mycategory',
+          element: <UtilsMyCategory />
+        }
+      ]
+    },
+    {
+      path: 'utils',
+      children: [
+        {
+          path: 'util-mycollection',
+          element: <UtilsMyCollection/>
+        }
+      ]
+    },
+    {
+      path: 'utils',
+      children: [
+        {
+          path: 'util-mymenu',
+          element: <UtilsMyMenu/>
+        }
+      ]
+    },
+    {
+      path: 'utils',
+      children: [
+        {
+          path: 'util-mytemplate',
+          element: <UtilsMyTemplate/>
+        }
+      ]
+    },
+    {
+      path: 'utils',
+      children: [
+        {
+          path: 'util-mystore',
+          element: <UtilsMyStore/>
         }
       ]
     },
