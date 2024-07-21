@@ -34,10 +34,10 @@ const brandManagerUtilities = {
       breadcrumbs: false
     },
     {
-      id: 'util-shadow',
-      title: 'Stores',
+      id: 'util-mystore',
+      title: 'My Stores',
       type: 'item',
-      url: '/utils/util-shadow',
+      url: '/utils/util-mystore',
       icon: icons.IconBuildingStore,
       breadcrumbs: false
     },
@@ -46,6 +46,39 @@ const brandManagerUtilities = {
       title: 'My Products',
       type: 'item',
       url: '/utils/util-myproduct',
+      icon: icons.IconPackage,
+      breadcrumbs: false
+    },
+    {
+      id: 'util-mycategory',
+      title: 'My Category',
+      type: 'item',
+      url: '/utils/util-mycategory',
+      icon: icons.IconPackage,
+      breadcrumbs: false
+    },
+
+    {
+      id: 'util-mycollection',
+      title: 'My Collection',
+      type: 'item',
+      url: '/utils/util-mycollection',
+      icon: icons.IconPackage,
+      breadcrumbs: false
+    },
+    {
+      id: 'util-mymenu',
+      title: 'My Menu',
+      type: 'item',
+      url: '/utils/util-mymenu',
+      icon: icons.IconPackage,
+      breadcrumbs: false
+    },
+    {
+      id: 'util-mytemplate',
+      title: 'My Template',
+      type: 'item',
+      url: '/utils/util-mytemplate',
       icon: icons.IconPackage,
       breadcrumbs: false
     },
