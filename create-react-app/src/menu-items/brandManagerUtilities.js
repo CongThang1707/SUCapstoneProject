@@ -1,5 +1,5 @@
 // assets
-import { IconUsers, IconBuildingStore, IconBrandMedium, IconWindmill, IconPackage, IconTemplate } from '@tabler/icons-react';
+import { IconUsers, IconBuildingStore, IconBrandMedium, IconWindmill, IconPackage } from '@tabler/icons-react';
 
 // constant
 const icons = {
@@ -7,13 +7,12 @@ const icons = {
   IconBuildingStore,
   IconBrandMedium,
   IconWindmill,
-  IconPackage,
-  IconTemplate
+  IconPackage
 };
 
 // ==============================|| UTILITIES MENU ITEMS ||============================== //
 
-const utilities = {
+const brandManagerUtilities = {
   id: 'utilities',
   title: 'Utilities',
   type: 'group',
@@ -27,10 +26,10 @@ const utilities = {
       breadcrumbs: false
     },
     {
-      id: 'util-color',
-      title: 'Brands',
+      id: 'util-mybrand',
+      title: 'My Brand',
       type: 'item',
-      url: '/utils/util-color',
+      url: '/utils/util-mybrand',
       icon: icons.IconBrandMedium,
       breadcrumbs: false
     },
@@ -42,29 +41,12 @@ const utilities = {
       icon: icons.IconBuildingStore,
       breadcrumbs: false
     },
-
     {
-      id: 'util-product',
-      title: 'Products',
+      id: 'util-myproduct',
+      title: 'My Products',
       type: 'item',
-      url: '/utils/util-product',
+      url: '/utils/util-myproduct',
       icon: icons.IconPackage,
-      breadcrumbs: false
-    },
-    {
-      id: 'util-make-new-template',
-      title: 'Templates',
-      type: 'item',
-      url: 'pages/template',
-      icon: icons.IconTemplate,
-      breadcrumbs: false
-    },
-    {
-      id: 'util-display',
-      title: 'Display',
-      type: 'item',
-      url: '/pages/display',
-      icon: icons.IconWindmill,
       breadcrumbs: false
     },
     {
@@ -94,4 +76,4 @@ const utilities = {
   ]
 };
 
-export default utilities;
+export default brandManagerUtilities;

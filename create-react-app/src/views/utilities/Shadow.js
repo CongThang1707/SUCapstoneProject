@@ -82,8 +82,8 @@ const UtilitiesShadow = () => {
       setIsLoading(true);
       try {
         const [storeResponse, brandResponse] = await Promise.all([
-          axios.get('https://3.1.81.96/api/Stores?pageNumber=1&pageSize=10'),
-          axios.get('https://3.1.81.96/api/Brand?pageNumber=1&pageSize=10') // Replace with your brand API endpoint
+          axios.get('https://3.1.81.96/api/Stores'),
+          axios.get('https://3.1.81.96/api/Brands?') // Replace with your brand API endpoint
         ]);
 
         // Map brand names to stores
@@ -150,7 +150,7 @@ const UtilitiesShadow = () => {
               <TableBody>
                 {storeData.map((store) => (
                   <TableRow key={store.storeID}>
-                    <TableCell>{store.brandID}</TableCell>
+                    <TableCell>{store.brandName}</TableCell>
                     <TableCell>{store.storeLocation}</TableCell>
                     <TableCell>
                       <Button variant="contained" color="error" size="small" onClick={() => handleDelete(store.storeID)}>
