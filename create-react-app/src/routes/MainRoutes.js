@@ -92,6 +92,15 @@ const MainRoutes = {
       ]
     },
     {
+      path: 'utils',
+      children: [
+        {
+          path: 'util-template',
+          element: <UtilsTemplateIcons />
+        }
+      ]
+    },
+    {
       path: 'icons',
       children: [
         {
