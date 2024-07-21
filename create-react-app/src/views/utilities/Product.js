@@ -59,8 +59,8 @@ const UtilitiesProduct = () => {
 
         // Fetch updated product and category data
         const [updatedProductResponse, categoryResponse] = await Promise.all([
-          axios.get('https://3.1.81.96/api/Products?pageNumber=1&pageSize=10'),
-          axios.get('https://3.1.81.96/api/Categories?pageNumber=1&pageSize=10')
+          axios.get('https://3.1.81.96/api/Products?pageNumber=1&pageSize=100'),
+          axios.get('https://3.1.81.96/api/Categories?pageNumber=1&pageSize=100')
         ]);
 
         if (!updatedProductResponse.data || !categoryResponse.data) {
@@ -104,8 +104,8 @@ const UtilitiesProduct = () => {
 
       try {
         const [productResponse, categoryResponse] = await Promise.all([
-          axios.get('https://3.1.81.96/api/Products?pageNumber=1&pageSize=10'),
-          axios.get('https://3.1.81.96/api/Categories?pageNumber=1&pageSize=10')
+          axios.get('https://3.1.81.96/api/Products?pageNumber=1&pageSize=100'),
+          axios.get('https://3.1.81.96/api/Categories?pageNumber=1&pageSize=100')
         ]);
 
         if (!productResponse.data || !categoryResponse.data) {

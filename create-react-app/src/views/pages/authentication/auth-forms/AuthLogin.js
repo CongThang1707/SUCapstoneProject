@@ -85,11 +85,11 @@ const FirebaseLogin = ({ ...others }) => {
 
             if (response.status === 200) {
               // Successful login (handle token/session storage, etc.)
-              const token = response.data.token;
-              const userId = response.data.userId;
-              dispatch(loginSuccess(token, userId));
-              // localStorage.setItem('token', response.data.token);
-              // localStorage.setItem('userId', response.data.userId);
+              localStorage.setItem('token', response.data.token);
+              localStorage.setItem('userId', response.data.userId);
+              localStorage.setItem('role', response.data.role);
+              localStorage.setItem('brandId', response.data.brandId);
+
               setStatus({ success: true });
               setSubmitting(false);
               navigate('/dashboard/default', { replace: true });
