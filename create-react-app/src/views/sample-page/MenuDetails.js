@@ -224,10 +224,12 @@ const MenuDetails = () => {
         setOpenSnackbar(true);
         setSnackbarMessage('Product group deleted successfully!');
       } else {
-        // ... (error handling) ...
+        console.error('Error deleting product group:', response);
+        setError(response.data?.error || response.statusText);
       }
     } catch (error) {
-      // ... (error handling) ...
+      console.error('Error deleting product group:', error);
+      setError('An error occurred while deleting the product group.');
     } finally {
       setShowDeleteConfirmation(false); // Close the dialog
     }
@@ -240,6 +242,7 @@ const MenuDetails = () => {
       [name]: name === 'haveNormalPrice' ? checked : value // Update boolean for Switch
     }));
   };
+
   const handleAddProductGroup = async () => {
     try {
       // Prepare data to send to the API

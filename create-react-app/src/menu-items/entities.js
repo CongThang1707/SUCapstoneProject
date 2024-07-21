@@ -38,6 +38,14 @@ const entities = {
       url: '/entities/entity-collection',
       icon: icons.IconCooker,
       breadcrumbs: false
+    },
+    {
+      id: 'entity-font',
+      title: 'Font',
+      type: 'item',
+      url: '/entities/entity-font',
+      icon: icons.IconCooker,
+      breadcrumbs: false
     }
   ]
 };

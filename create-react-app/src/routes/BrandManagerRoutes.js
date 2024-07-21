@@ -7,10 +7,10 @@ import Loadable from 'ui-component/Loadable';
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')));
 // utilities routing
 const UtilsTypography = Loadable(lazy(() => import('views/utilities/Typography')));
-const UtilsProduct = Loadable(lazy(() => import('views/utilities/Product')));
 const UtilsMaterialIcons = Loadable(lazy(() => import('views/utilities/MaterialIcons')));
 const UtilsTablerIcons = Loadable(lazy(() => import('views/utilities/TablerIcons')));
 const UtilsMyBrand = Loadable(lazy(() => import('views/utilities/MyBrand')));
+const UtilsShadow = Loadable(lazy(() => import('views/utilities/Shadow')));
 const UtilsMyProduct = Loadable(lazy(() => import('views/utilities/MyProduct')));
 // sample entities routing
 const EntityTemplate = Loadable(lazy(() => import('views/entity/Template')));
@@ -63,8 +63,8 @@ const BrandManagerRoutes = {
       path: 'utils',
       children: [
         {
-          path: 'util-myproduct',
-          element: <UtilsMyProduct />
+          path: 'util-shadow',
+          element: <UtilsShadow />
         }
       ]
     },
@@ -72,8 +72,8 @@ const BrandManagerRoutes = {
       path: 'utils',
       children: [
         {
-          path: 'util-product',
-          element: <UtilsProduct />
+          path: 'util-myproduct',
+          element: <UtilsMyProduct />
         }
       ]
     },

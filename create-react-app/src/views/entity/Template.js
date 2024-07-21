@@ -133,7 +133,7 @@ const EntityTemplate = () => {
 
       try {
         const [templateResponse, brandResponse] = await Promise.all([
-          axios.get('https://3.1.81.96/api/Templates?pageNumber=1&pageSize=100'),
+          axios.get('https://3.1.81.96/api/Templates?pageNumber=42&pageSize=10'),
           axios.get('https://3.1.81.96/api/Brands?pageNumber=1&pageSize=100')
         ]);
 
