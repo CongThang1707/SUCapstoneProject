@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 // material-ui
@@ -29,9 +29,13 @@ import AnimateButton from 'ui-component/extended/AnimateButton';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
+import { useDispatch } from 'react-redux';
+import { loginSuccess } from 'store/actions';
+
 // ============================|| FIREBASE - LOGIN ||============================ //
 
 const FirebaseLogin = ({ ...others }) => {
+  const dispatch = useDispatch();
   const theme = useTheme();
   const [checked, setChecked] = useState(true);
 
@@ -39,6 +43,8 @@ const FirebaseLogin = ({ ...others }) => {
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
   };
+
+  useEffect(() => {}, []);
 
   const handleMouseDownPassword = (event) => {
     event.preventDefault();
@@ -83,6 +89,7 @@ const FirebaseLogin = ({ ...others }) => {
               localStorage.setItem('userId', response.data.userId);
               localStorage.setItem('role', response.data.role);
               localStorage.setItem('brandId', response.data.brandId);
+
               setStatus({ success: true });
               setSubmitting(false);
               navigate('/dashboard/default', { replace: true });
