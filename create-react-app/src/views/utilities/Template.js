@@ -617,57 +617,6 @@ function Template() {
     console.log('clicked image');
   };
 
-  // function generateRandomName() {
-  //   const timestamp = new Date().getTime(); // Get current timestamp
-  //   const randomString = Math.random().toString(36).substring(2, 8); // Generate random string
-
-  //   // Combine random string and timestamp to create a unique name
-  //   const randomName = `${randomString}_${timestamp}`;
-
-  //   return randomName;
-  // }
-
-  // const base64Decoder = (base64) => {
-  //   // const http = new XMLHttpRequest();
-
-  //   // const name = generateRandomName();
-
-  //   return new Promise((resolve, reject) => {
-  //     const http = new XMLHttpRequest();
-  //     const name = generateRandomName();
-
-  //     http.onload = () => {
-  //       const url = window.URL.createObjectURL(http.response);
-  //       // Optionally create a link to download the image
-  //       var link = document.createElement('a');
-  //       // link.href = url;
-  //       link.download = name;
-  //       // link.click();
-
-  //       // Resolve with the URL of the created image
-  //       return resolve(url);
-  //     };
-
-  //     http.onerror = () => {
-  //       reject(new Error('Failed to decode base64 to image.'));
-  //     };
-
-  //     //   http.onload = () => {
-  //     //     var url = window.URL.createObjectURL(http.response);
-  //     //     var link = document.createElement('a');
-  //     //     link.href = url;
-  //     //     link.download = name;
-  //     //     link.click();
-  //     //     // console.log("Result: ", http.response);
-  //     //     // console.log('URL: ', link);
-  //     //     // return url;
-  //     //   };
-  //     http.responseType = 'blob';
-  //     http.open('GET', base64, true);
-  //     http.send();
-  //   });
-  // };
-
   const updateTemplateImg = (templateId, data) => {
     try {
       axios.put(`https://ec2-3-1-81-96.ap-southeast-1.compute.amazonaws.com/api/Templates/${templateId}/image?TemplateImgPath=${data}`);
