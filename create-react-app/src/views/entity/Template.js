@@ -64,6 +64,8 @@ const EntityTemplate = () => {
         setOpenSnackbar(true);
         setSnackbarMessage('Template added successfully!');
         setShowAddTemplateDialog(false);
+        console.log('Template added successfully:', response.data);
+        navigate('/pages/template', { state: { templateData: response.data.templateId } });
       } else {
         console.error('Error creating template:', response);
         setError(`Error: ${response.statusText}`);
@@ -133,7 +135,7 @@ const EntityTemplate = () => {
 
       try {
         const [templateResponse, brandResponse] = await Promise.all([
-          axios.get('https://3.1.81.96/api/Templates?pageNumber=42&pageSize=10'),
+          axios.get('https://3.1.81.96/api/Templates?pageNumber=1&pageSize=1000'),
           axios.get('https://3.1.81.96/api/Brands?pageNumber=1&pageSize=100')
         ]);
 

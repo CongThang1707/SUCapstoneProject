@@ -29,13 +29,13 @@ import AnimateButton from 'ui-component/extended/AnimateButton';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
-import { useDispatch } from 'react-redux';
-import { loginSuccess } from 'store/actions';
+// import { useDispatch } from 'react-redux';
+// import { loginSuccess } from 'store/actions';
 
 // ============================|| FIREBASE - LOGIN ||============================ //
 
 const FirebaseLogin = ({ ...others }) => {
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
   const theme = useTheme();
   const [checked, setChecked] = useState(true);
 

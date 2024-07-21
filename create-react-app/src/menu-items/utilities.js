@@ -52,11 +52,19 @@ const utilities = {
       breadcrumbs: false
     },
     {
-      id: 'util-template',
+      id: 'util-make-new-template',
       title: 'Templates',
       type: 'item',
-      url: '/utils/util-template',
+      url: 'pages/template',
       icon: icons.IconTemplate,
+      breadcrumbs: false
+    },
+    {
+      id: 'util-display',
+      title: 'Display',
+      type: 'item',
+      url: '/pages/display',
+      icon: icons.IconWindmill,
       breadcrumbs: false
     },
     {

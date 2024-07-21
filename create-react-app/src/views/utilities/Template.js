@@ -605,13 +605,13 @@ function Template() {
     );
   };
 
-  const hanlderFontChange = (e) => {
-    const value = e.target.value;
+  // const hanlderFontChange = (e) => {
+  //   const value = e.target.value;
 
-    setFonts(value);
+  //   setFonts(value);
 
-    console.log(value);
-  };
+  //   console.log(value);
+  // };
 
   const clicked = () => {
     console.log('clicked image');
@@ -724,14 +724,14 @@ function Template() {
         <button onClick={isItalic}>I</button>
         <label htmlFor="font-color">Background Color:</label>
         <input type="color" id="font-color" onChange={(e) => changeBackgroundColor(e)} />
-        <select onChange={hanlderFontChange}>
-          {/* <option value="">Select a font</option> */}
-          {fonts.slice(0, 2).map((font) => (
-            <option key={font.fontId} value={font.fontName}>
-              {font.fontName}
-            </option>
-          ))}
-        </select>
+        {/* <select onChange={hanlderFontChange}> */}
+        {/* <option value="">Select a font</option> */}
+        {/* {fonts.slice(0, 2).map((font) => ( */}
+        {/* // <option key={font.fontId} value={font.fontName}> */}
+        {/* {font.fontName} */}
+        {/* </option> */}
+        {/* ))} */}
+        {/* </select> */}
         <div className="actions">
           <button className="save-btn" onClick={takeScreenShot}>
             Save
