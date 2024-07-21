@@ -4,6 +4,7 @@
   "private": true,
   "homepage": "https://berrydashboard.io/free",
   "dependencies": {
+    "@cloudinary/react": "^1.13.0",
     "@cloudinary/url-gen": "^1.19.0",
     "@emotion/cache": "^11.11.0",
     "@emotion/react": "^11.11.3",
@@ -21,6 +22,7 @@
     "fabricjs-react": "^1.2.2",
     "formik": "^2.4.5",
     "framer-motion": "^11.0.3",
+    "html2canvas": "^1.4.1",
     "material-ui-popup-state": "^5.0.10",
     "mui-file-input": "^4.0.4",
     "prop-types": "^15.8.1",

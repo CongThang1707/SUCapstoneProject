@@ -6,28 +6,48 @@ import { Button } from '@mui/material';
 import TextFieldsIcon from '@mui/icons-material/TextFields';
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import ImageIcon from '@mui/icons-material/Image';
-import CategoryIcon from '@mui/icons-material/Category';
+import CldImage from 'ui-component/CldImage';
+
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import html2canvas from 'html2canvas';
+import axios from 'axios';
 
 import boxService from 'services/box_service';
 import layerService from 'services/layer_service';
 import templateService from 'services/template_service';
 import boxItemService from 'services/box_item_service';
 import layerItemService from 'services/layer_item_service';
-
+import fontService from 'services/font_service';
+import cloudinaryService from 'services/cloudinary_service';
 function Template() {
   const [activeTab, setActiveTab] = useState(null);
   const { editor, onReady } = useFabricJSEditor();
   const [color, setColor] = useState('#35363a');
+  const [fontSize, setFontSize] = useState(20);
   const [templateId, setTemplateId] = useState(null);
   const [isDisabled, setIsDisabled] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [fonts, setFonts] = useState([]);
+  const [backgroundColor, setBackgroundColor] = useState('#fff');
+  const [assetImage, setAssetImage] = useState([]);
+  // const [isBold, setIsBold] = useState(false);
+  // const [isItalic, setIsItalic] = useState(false);
 
   const box_service = new boxService();
   const layer_service = new layerService();
   const template_service = new templateService();
   const box_item_service = new boxItemService();
   const layer_item_service = new layerItemService();
+  const font_service = new fontService();
+  const cloudinary_service = new cloudinaryService();
+
+  // const images = [
+  //   'https://t3.ftcdn.net/jpg/05/34/87/74/360_F_534877406_qPhW6XnJsy3V7ynES5WeZiGPX06iv1hk.jpg',
+  //   'https://t3.ftcdn.net/jpg/06/62/44/90/360_F_662449057_Cyc3Fqh3qSZoBWJc5xvmqcZ8roYgt17I.jpg',
+  //   'https://t4.ftcdn.net/jpg/00/84/85/13/360_F_84851321_FgWEDdRksD2ZxdddtZA8rkLAMiRpPGeU.jpg',
+  //   'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQboYFDZUxSy558UH73gbtLhNpHeOkK9ICbLQ&s',
+  //   'https://bevivu.com/wp-content/uploads/image8/2024/02/jade-scence-hotel070220241707297614.jpeg'
+  // ];
 
   // const cloudName = import.meta.env.VITE_CLOUD_NAME;
   // const uploadPreset = import.meta.env.VITE_UPLOAD_PRESET;
@@ -37,6 +57,41 @@ function Template() {
 
   const handleTabClick = (tab) => {
     setActiveTab(activeTab === tab ? null : tab);
+  };
+
+  const getImages = async (tag) => {
+    try {
+      const images = await cloudinary_service.getAllImages(tag);
+
+      setAssetImage(images);
+
+      return images;
+    } catch (error) {
+      console.log('Error message: ', error.message);
+    }
+  };
+
+  // const getBackgroundImages = async (tag) => {
+  //   try {
+  //     const images = await cloudinary_service.getAllImages(tag);
+
+  //     setAssetImage(images);
+
+  //     return images;
+  //   } catch (error) {
+  //     console.log('Error message: ', error.message);
+  //   }
+  // };
+
+  const getAllFont = async () => {
+    try {
+      await font_service.getAll().then((value) => {
+        setFonts(value);
+        console.log('Fonts: ', fonts);
+      });
+    } catch (error) {
+      console.log('Error message: ' + error.message);
+    }
   };
 
   const createUserTemplate = async () => {
@@ -80,20 +135,22 @@ function Template() {
   const createBox = async (layerId, boxType) => {
     try {
       const id = await box_service.createBox(layerId, 200, 200, 200, 200, boxType, 100);
+
       // setBoxId(id);
+
       return id;
     } catch (error) {
       console.log('Error message: ' + error.message);
     }
   };
 
-  const createBoxItem = async (boxId, textFormat, boxType) => {
+  const createBoxItem = async (boxId, textFormat, boxItemType) => {
     try {
-      const id = await box_item_service.createBoxItem(boxId, 1, 20, textFormat, boxType, '#FFFFFF');
+      const id = await box_item_service.createBoxItem(boxId, 8, 20, textFormat, boxItemType, '#FFFFFF');
 
       return id;
     } catch (error) {
-      console.log('Error message: ' + error.message);
+      console.log('Error message: ' + JSON.stringify(error.message));
     }
   };
 
@@ -117,8 +174,20 @@ function Template() {
     }
   };
 
+  const updateBoxItem = async (boxId, fontId, fontSize, textFormat, boxItemType, boxColor) => {
+    try {
+      await box_item_service.updateBoxItem(boxId, fontId, fontSize, textFormat, boxItemType, boxColor);
+
+      // console.log('Response update box item: ', JSON.stringify(response));
+    } catch (error) {
+      console.log('Error message: ' + error.message);
+    }
+  };
+
   useEffect(() => {
     createUserTemplate();
+    getAllFont();
+    getImages('asset/images');
 
     document.addEventListener('keydown', detectKeydown);
 
@@ -152,17 +221,21 @@ function Template() {
       // Redo (Ctrl + Y or Cmd + Y)
       console.log('Redo action');
     } else if (e.key === 'Backspace' || e.key === 'Delete') {
-      // Treat Backspace and Delete as the same (Delete)
-      console.log('Delete action');
-      // Implement your redo functionality here
+      // removeSelectedObject();
+      // if (editor.canvas.getActiveObject()) {
+      //   console.log('Delete');
+      // }
+
+      console.log('Do nothing');
     } else if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
-      // Copy (Ctrl + C or Cmd + C)
+      // Copy();
       console.log('Copy action');
       // Implement your copy functionality here
     } else if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+      // Paste();
       console.log('Paste action');
     } else {
-      console.log('key: ', e.key);
+      // console.log('key: ', e.key);
     }
   };
 
@@ -171,24 +244,24 @@ function Template() {
   //   // may want copy and paste on different moment.
   //   // and you do not want the changes happened
   //   // later to reflect on the copy.
-  //   canvas.getActiveObject().clone(function(cloned) {
+  //   editor.canvas.getActiveObject().clone(function (cloned) {
   //     _clipboard = cloned;
   //   });
   // }
 
   // function Paste() {
   //   // clone again, so you can do multiple copies.
-  //   _clipboard.clone(function(clonedObj) {
+  //   _clipboard.clone(function (clonedObj) {
   //     canvas.discardActiveObject();
   //     clonedObj.set({
   //       left: clonedObj.left + 10,
   //       top: clonedObj.top + 10,
-  //       evented: true,
+  //       evented: true
   //     });
   //     if (clonedObj.type === 'activeSelection') {
   //       // active selection needs a reference to the canvas.
   //       clonedObj.canvas = canvas;
-  //       clonedObj.forEachObject(function(obj) {
+  //       clonedObj.forEachObject(function (obj) {
   //         canvas.add(obj);
   //       });
   //       // this should solve the unselectability
@@ -229,37 +302,37 @@ function Template() {
     // createUserTemplate();
   }, []);
 
-  const addBackgroundImage = (file) => {
-    const reader = new FileReader();
+  // const addBackgroundImage = (file) => {
+  //   const reader = new FileReader();
 
-    reader.onload = (e) => {
-      fabric.Image.fromURL(e.target.result, (img) => {
-        img.scale(0.75);
-        img.scaleX = editor.canvas.width / img.width;
-        img.scaleY = editor.canvas.height / img.height;
-        editor.canvas.add(img);
-        editor.canvas.renderAll();
-      });
-    };
-    reader.readAsDataURL(file);
-  };
+  //   reader.onload = (e) => {
+  //     fabric.Image.fromURL(e.target.result, (img) => {
+  //       img.scale(0.75);
+  //       img.scaleX = editor.canvas.width / img.width;
+  //       img.scaleY = editor.canvas.height / img.height;
+  //       editor.canvas.add(img);
+  //       editor.canvas.renderAll();
+  //     });
+  //   };
+  //   reader.readAsDataURL(file);
+  // };
 
-  const handleBackgroundImageUpload = async (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      // const url = URL.createObjectURL(file);
+  // const handleBackgroundImageUpload = async (event) => {
+  //   const file = event.target.files[0];
+  //   if (file) {
+  //     // const url = URL.createObjectURL(file);
 
-      addBackgroundImage(file);
-      // console.log('File url:', url);
-      // console.log('File Name:', file.name);
-      // console.log('File Type:', file.type);
-      // console.log('File Size:', file.size);
-      const layerId = await createLayer(templateId, 'BackGroundImage', 0);
-      const layerItemId = await createLayerItem(layerId, file.name);
-      console.log('layerId: ', layerId);
-      console.log('layerItemId: ', layerItemId);
-    }
-  };
+  //     addBackgroundImage(file);
+  //     // console.log('File url:', url);
+  //     // console.log('File Name:', file.name);
+  //     // console.log('File Type:', file.type);
+  //     // console.log('File Size:', file.size);
+  //     const layerId = await createLayer(templateId, 'BackGroundImage', 0);
+  //     const layerItemId = await createLayerItem(layerId, file.name);
+  //     console.log('layerId: ', layerId);
+  //     console.log('layerItemId: ', layerItemId);
+  //   }
+  // };
 
   const addImage = (file) => {
     const reader = new FileReader();
@@ -279,10 +352,7 @@ function Template() {
       // const url = URL.createObjectURL(file);
 
       addImage(file);
-      // console.log('File url:', url);
-      // console.log('File Name:', file.name);
-      // console.log('File Type:', file.type);
-      // console.log('File Size:', file.size);
+      uploadWidget();
       const layerId = await createLayer(1);
       const layerItemId = await createLayerItem(layerId, file.name);
       const boxId = await createBox(layerId, 0);
@@ -292,13 +362,56 @@ function Template() {
     }
   };
 
+  const changeBackgroundColor = (e) => {
+    const newColor = e.target.value;
+    setBackgroundColor(newColor);
+    console.log(newColor);
+    const activeObject = editor.canvas.getActiveObject();
+
+    activeObject.set('fill', newColor);
+    // editor.canvas.backgroundColor = newColor;
+    editor.canvas.renderAll();
+  };
+
+  const changeFontSize = (e) => {
+    const newFontSize = e.target.value;
+    setFontSize(newFontSize);
+    console.log('FontSize: ', newFontSize);
+
+    const activeObject = editor.canvas.getActiveObject();
+    if (activeObject && activeObject.type === 'textbox') {
+      activeObject.set('fontSize', newFontSize);
+      activeObject.fire('modified');
+      editor.canvas.renderAll();
+    }
+  };
+
   const changeColor = (e) => {
     setColor(e.target.value);
     console.log(color);
     const o = editor.canvas.getActiveObject();
     o.set('fill', color);
     editor?.setStrokeColor(color);
+    o.fire('modified');
     editor.canvas.renderAll();
+  };
+
+  const isBold = () => {
+    const o = editor.canvas.getActiveObject();
+    if (o) {
+      const currentFontWeight = o.get('fontWeight');
+      o.set('fontWeight', currentFontWeight === 'bold' ? 'normal' : 'bold');
+      editor.canvas.renderAll();
+    }
+  };
+
+  const isItalic = () => {
+    const o = editor.canvas.getActiveObject();
+    if (o) {
+      const currentFontStyle = o.get('fontStyle');
+      o.set('fontStyle', currentFontStyle === 'italic' ? 'normal' : 'italic');
+      editor.canvas.renderAll();
+    }
   };
 
   const addText = async (title) => {
@@ -309,16 +422,20 @@ function Template() {
       left: 300,
       fill: color,
       width: 100,
-      fontSize: 20,
-      height: 100
+      fontSize: fontSize,
+      height: 50,
+      backgroundColor: 'transparent',
+      fontStyle: 'normal',
+      fontWeight: null
     });
 
     editor.canvas.add(text);
 
     const layerId = await createLayer(3);
     const layerItemId = await createLayerItem(layerId, 'Text');
-    const boxId = await createBox(layerId, 1);
+    const boxId = await createBox(layerId, 0);
     const boxItemId = await createBoxItem(boxId, 1, 0);
+
     console.log('Layer id: ', layerId);
     console.log('layer item id: ', layerItemId);
     console.log('Box id: ', boxId);
@@ -326,23 +443,38 @@ function Template() {
 
     // editor.canvas.requestRenderAll();
 
-    // text.on('changed', function () {
-    //   console.log('Text changed to: ', text.text);
-    //   // console.log('Left: ' + text.left + ' Top: ' + text.top);
-    //   // console.log('Box id: ', boxId);
-    //   // console.log('Layer id: ', layerId);
-    //   // console.log('Box item id: ', boxItemId);
-    //   // console.log('Layer item id: ', layerItemID);
-    // });
-
-    text.on('modified', function () {
-      console.log('Left: ' + text.left + ' Top: ' + text.top);
-      console.log('Text changed to: ', text.text);
-      updateLayerItem(3, text.text, layerItemId);
-      updateBox(boxId, text.left, text.top, text.width, text.height, 100);
+    text.on('object:modified', function () {
+      // console.log('Text changed to: ', text.text);
+      console.log('font size', text.fontSize);
+      // console.log('Left: ' + text.left + ' Top: ' + text.top);
+      // console.log('Box id: ', boxId);
+      // console.log('Layer id: ', layerId);
+      // console.log('Box item id: ', boxItemId);
+      // console.log('Layer item id: ', layerItemID);
     });
 
-    console.log('Initial position: ', text.left, text.top);
+    text.on('modified', function () {
+      // console.log('Left: ' + text.left + ' Top: ' + text.top);
+      // console.log('Text changed to: ', text.text);
+      // console.log('Color: ', text.fill);
+      // console.log('Width: ', text.width);
+      // console.log('Height: ', text.height);
+      // console.log('Font size: ', text.fontSize);
+      updateLayerItem(3, text.text, layerItemId);
+      updateBox(boxId, text.left, text.top, text.width, text.height, 100);
+      updateBoxItem(boxItemId, 8, text.fontSize, 1, 0, text.fill);
+    });
+
+    text.on('resizing', function () {
+      console.log('asddsa');
+      console.log('width: ', text.width, 'height: ', text.height);
+    });
+
+    text.on('fill:changed', function () {
+      console.log('changed');
+    });
+
+    // console.log('Widdth: ', text.width, 'Height: ', text.height);
     editor.canvas.renderAll();
   };
 
@@ -350,22 +482,33 @@ function Template() {
     const rect = new fabric.Rect({
       left: 100,
       top: 100,
-      fill: 'white',
+      fill: backgroundColor,
       borderColor: 'dark',
       width: 200,
-      height: 200
+      height: 200,
+      selectionBackgroundColor: 'black'
     });
 
     editor.canvas.add(rect);
+    const width = rect.width;
+    const height = rect.height;
 
     const layerId = await createLayer(2);
     const boxId = await createBox(layerId, 1);
     const box1 = await createBoxItem(boxId, 1, 0);
     const box2 = await createBoxItem(boxId, 0, 1);
+    console.log('width: ', width, 'height: ', height);
     console.log('Layer id: ', layerId);
     console.log('Box id: ', boxId);
-    console.log('Box item id: ', box1);
-    console.log('Box item id: ', box2);
+    console.log('Box item id 1: ', box1);
+    console.log('Box item id 2: ', box2);
+
+    rect.on('modified', function () {
+      updateBox(boxId, rect.left, rect.top, width, height, 100);
+
+      // console.log('Left: ' + rect.left + ' Top: ' + rect.top);
+    });
+
     // editor.canvas.renderAll();
   };
 
@@ -378,78 +521,259 @@ function Template() {
       fill: '#FFC5CB',
       borderColor: 'dark',
       width: 200,
-      height: 200
+      height: 200,
+      selectionBackgroundColor: 'black'
     });
+
+    const width = rect.width;
+    const height = rect.height;
 
     editor.canvas.add(rect);
 
-    const layerId = await createLayer(4);
+    rect.on('modified', function () {
+      updateBox(boxId, rect.left, rect.top, width, height, 100);
+    });
 
+    const layerId = await createLayer(4);
     const boxId = await createBox(layerId, 1);
+
     const boxItemId = await createBoxItem(boxId, 1, 0);
     console.log('Layer id: ', layerId);
     console.log('Box id: ', boxId);
     console.log('Box item id: ', boxItemId);
   };
 
+  const addBackgroundImage = (file) => {
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      fabric.Image.fromURL(e.target.result, (img) => {
+        img.scale(0.75);
+        img.scaleX = editor.canvas.width / img.width;
+        img.scaleY = editor.canvas.height / img.height;
+        editor.canvas.add(img);
+        editor.canvas.renderAll();
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleBackgroundImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      addBackgroundImage(file);
+
+      console.log('layerId: ', layerId);
+      console.log('layerItemId: ', layerItemId);
+    }
+  };
+
+  const processResults = async (error, result) => {
+    if (result.event === 'close') {
+      setIsDisabled(false);
+    }
+    if (result && result.event === 'success') {
+      const layerId = await createLayer(templateId, 'BackGroundImage', 0);
+      const layerItemId = await createLayerItem(layerId, result.info.secure_url);
+      const boxId = await createBox(layerId, 200, 200, 300, 300, 0, 100);
+
+      console.log('layerId: ', layerId);
+      console.log('layerItemId: ', layerItemId);
+      console.log('boxId: ', boxId);
+      console.log('success');
+
+      setIsDisabled(false);
+    }
+    if (error) {
+      setIsDisabled(false);
+    }
+  };
+
   const uploadWidget = () => {
+    // handleBackgroundImageUpload();
     setIsDisabled(true);
     window.cloudinary.openUploadWidget(
       {
         cloudName,
         uploadPreset,
         sources: ['local', 'url'],
-        tags: ['myphotoalbum-react'],
+        // tags: ['myphotoalbum-react'],
         clientAllowedFormats: ['image'],
         resourceType: 'image'
-      }
-      // processResults
+      },
+      processResults
     );
+  };
+
+  const hanlderFontChange = (e) => {
+    const value = e.target.value;
+
+    setFonts(value);
+
+    console.log(value);
+  };
+
+  const clicked = () => {
+    console.log('clicked image');
+  };
+
+  // function generateRandomName() {
+  //   const timestamp = new Date().getTime(); // Get current timestamp
+  //   const randomString = Math.random().toString(36).substring(2, 8); // Generate random string
+
+  //   // Combine random string and timestamp to create a unique name
+  //   const randomName = `${randomString}_${timestamp}`;
+
+  //   return randomName;
+  // }
+
+  // const base64Decoder = (base64) => {
+  //   // const http = new XMLHttpRequest();
+
+  //   // const name = generateRandomName();
+
+  //   return new Promise((resolve, reject) => {
+  //     const http = new XMLHttpRequest();
+  //     const name = generateRandomName();
+
+  //     http.onload = () => {
+  //       const url = window.URL.createObjectURL(http.response);
+  //       // Optionally create a link to download the image
+  //       var link = document.createElement('a');
+  //       // link.href = url;
+  //       link.download = name;
+  //       // link.click();
+
+  //       // Resolve with the URL of the created image
+  //       return resolve(url);
+  //     };
+
+  //     http.onerror = () => {
+  //       reject(new Error('Failed to decode base64 to image.'));
+  //     };
+
+  //     //   http.onload = () => {
+  //     //     var url = window.URL.createObjectURL(http.response);
+  //     //     var link = document.createElement('a');
+  //     //     link.href = url;
+  //     //     link.download = name;
+  //     //     link.click();
+  //     //     // console.log("Result: ", http.response);
+  //     //     // console.log('URL: ', link);
+  //     //     // return url;
+  //     //   };
+  //     http.responseType = 'blob';
+  //     http.open('GET', base64, true);
+  //     http.send();
+  //   });
+  // };
+
+  const updateTemplateImg = (templateId, data) => {
+    try {
+      axios.put(`https://ec2-3-1-81-96.ap-southeast-1.compute.amazonaws.com/api/Templates/${templateId}/image?TemplateImgPath=${data}`);
+    } catch (error) {
+      console.log('Failed to upload template image: ' + JSON.stringify(error));
+    }
+  };
+
+  const takeScreenShot = () => {
+    const preset_key = 'xdm798lx';
+    const formData = new FormData();
+
+    html2canvas(document.querySelector('.sample-canvas')).then(async (canvas) => {
+      const base64 = canvas.toDataURL('image/png');
+      // console.log('URL: ', base64);
+      // const screenShot = base64Decoder(base64);
+      // console.log('Screen Shot: ', screenShot);
+      formData.append('file', base64);
+      formData.append('upload_preset', preset_key);
+      // console.log('Result ', canvas.toDataURL('image/png'));
+      try {
+        await axios
+          .post(`https://api.cloudinary.com/v1_1/dchov8fes/image/upload`, formData)
+          .then(async (result) => {
+            const templateImg = result.data.url;
+            updateTemplateImg(templateId, templateImg);
+            // console.log('Response from cloudinary: ' + JSON.stringify(result.data.url));
+          })
+          .catch((error) => {
+            console.log('Failed to upload to cloundinary: ' + error);
+          });
+      } catch (error) {
+        console.log('Failed to upload to cloundinary: ' + error.toString());
+      }
+    });
   };
 
   return (
     <div className="app">
       <header className="header">
-        <div className="logo">Canva Clone: templateId: {templateId}</div>
+        <div className="logo">Canva Clone: {templateId}</div>
+        <label htmlFor="font-size">Font Size:</label>
+        <input
+          type="number"
+          id="font-size"
+          value={fontSize}
+          onChange={changeFontSize}
+          min="1" // Set minimum value if needed
+          max="999" // Set maximum value if needed
+        />
+        <label htmlFor="font-color">Font Color:</label>
+        <input type="color" id="font-color" onChange={(e) => changeColor(e)} />
+        <button onClick={isBold}>B</button>
+        <button onClick={isItalic}>I</button>
+        <label htmlFor="font-color">Background Color:</label>
+        <input type="color" id="font-color" onChange={(e) => changeBackgroundColor(e)} />
+        <select onChange={hanlderFontChange}>
+          {/* <option value="">Select a font</option> */}
+          {fonts.slice(0, 2).map((font) => (
+            <option key={font.fontId} value={font.fontName}>
+              {font.fontName}
+            </option>
+          ))}
+        </select>
         <div className="actions">
-          <button className="save-btn">Save</button>
+          <button className="save-btn" onClick={takeScreenShot}>
+            Save
+          </button>
           <button className="share-btn">Share</button>
-
           <div className="profile">User</div>
         </div>
       </header>
-      <div className="toolbar">
+      {/* <div className="toolbar">
         <label htmlFor="font-size">Font Size:</label>
-        <select id="font-size">
-          <option value="small">Small</option>
-          <option value="medium">Medium</option>
-          <option value="large">Large</option>
-        </select>
+        <input
+          type="number"
+          id="font-size"
+          value={fontSize}
+          onChange={changeFontSize}
+          min="1" // Set minimum value if needed
+          max="999" // Set maximum value if needed
+        />
         <label htmlFor="font-color">Font Color:</label>
         <input type="color" id="font-color" onChange={(e) => changeColor(e)} />
-      </div>
+        <button>B</button>
+        <button>I</button>
+        <label htmlFor="font-color">Background Color:</label>
+        <input type="color" id="font-color" onChange={(e) => changeBackgroundColor(e)} />
+      </div> */}
       <div className="main">
         <div className="sidebar-container">
-          <aside className="sidebar">
-            <Button onClick={() => handleTabClick('text')} startIcon={<TextFieldsIcon />}>
+          <aside className="sidebar" style={{ marginLeft: '10%', borderRadius: '20px', marginTop: '10%' }}>
+            <Button onClick={() => handleTabClick('text')} startIcon={<TextFieldsIcon />} style={{ color: 'white' }}>
               Text
             </Button>
-            <Button onClick={() => handleTabClick('background')} startIcon={<ViewModuleIcon />}>
+            <Button onClick={() => handleTabClick('background')} startIcon={<ViewModuleIcon />} style={{ color: 'white' }}>
               Background
             </Button>
-            <Button onClick={() => handleTabClick('images')} startIcon={<ImageIcon />}>
-              Images
+            <Button onClick={() => handleTabClick('images')} startIcon={<ImageIcon />} style={{ color: 'white' }}>
+              Image
             </Button>
-            <Button onClick={() => handleTabClick('elements')} startIcon={<CategoryIcon />}>
-              Elements
-            </Button>
-            <Button onClick={() => handleTabClick('uploads')} startIcon={<CloudUploadIcon />}>
-              Uploads
-            </Button>
-            <Button onClick={() => handleTabClick('renderLayer')} startIcon={<CloudUploadIcon />}>
+
+            <Button onClick={() => handleTabClick('renderLayer')} startIcon={<CloudUploadIcon />} style={{ color: 'white' }}>
               Render Layer
             </Button>
-            <Button onClick={() => handleTabClick('menuCollection')} startIcon={<CloudUploadIcon />}>
+            <Button onClick={() => handleTabClick('menuCollection')} startIcon={<CloudUploadIcon />} style={{ color: 'white' }}>
               Menu Collection
             </Button>
           </aside>
@@ -457,7 +781,7 @@ function Template() {
           <div className={`tab-container ${activeTab ? 'open' : ''}`}>
             {activeTab === 'text' && (
               <div className="tab">
-                <h4>Select a text style</h4>
+                <h4 style={{ color: 'white' }}>Text</h4>
                 <button onClick={() => addText('Heading')}>Heading</button>
                 <button onClick={() => addText('Subheading')}>Subheading</button>
                 <button onClick={() => addText('Body Text')}>Body Text</button>
@@ -465,7 +789,7 @@ function Template() {
             )}
             {activeTab === 'background' && (
               <div className="tab">
-                <h4>Select a background image</h4>
+                <h4 style={{ color: 'white' }}>Background</h4>
                 <input type="file" accept="image/*" onChange={handleBackgroundImageUpload} />
                 <button
                   disabled={isDisabled}
@@ -478,30 +802,47 @@ function Template() {
               </div>
             )}
             {activeTab === 'images' && (
-              <div className="tab">
-                <h4>Select an image</h4>
+              <div className="tab narrow-tab" style={{ width: '100%' }}>
+                <h4 style={{ color: 'white' }}>Image</h4>
                 <input type="file" accept="image/*" onChange={handleImageUpload} />
+                <button
+                  disabled={isDisabled}
+                  className={`btn btn-primary ${isDisabled ? 'btn-disabled' : ''}`}
+                  type="button"
+                  onClick={uploadWidget}
+                >
+                  {isDisabled ? 'Đang mở ' : 'Tải ảnh lên'}
+                </button>
+                <div
+                  className="custom-scrollbar"
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflowY: 'scroll',
+                    maxHeight: '500px',
+                    width: '100%',
+                    paddingRight: '10px'
+                  }}
+                >
+                  {assetImage.resources.map((photo, idx) => {
+                    return (
+                      <button
+                        onClick={clicked}
+                        style={{ background: 'none', border: 'none', marginBottom: '0px', padding: '0px' }}
+                        key={idx}
+                      >
+                        {/* <img src={value} width="90%" height="auto" alt="" key="" style={{ margin: '5px', borderRadius: '10px' }} />; */}
+                        <CldImage publicId={photo.public_id} />
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
-            {activeTab === 'elements' && (
-              <div className="tab">
-                <h4>Select an element</h4>
-                <button>Element 1</button>
-                <button>Element 2</button>
-                <button>Element 3</button>
-              </div>
-            )}
-            {activeTab === 'uploads' && (
-              <div className="tab">
-                <h4>Upload files</h4>
-                <button>Upload 1</button>
-                <button>Upload 2</button>
-                <button>Upload 3</button>
-              </div>
-            )}
+
             {activeTab === 'renderLayer' && (
               <div className="tab">
-                <h4>Render Layer</h4>
+                <h4 style={{ color: 'white' }}>Render Layer</h4>
                 <button
                   onClick={() => {
                     addRenderLayer();
@@ -513,7 +854,7 @@ function Template() {
             )}
             {activeTab === 'menuCollection' && (
               <div className="tab">
-                <h4>Menu Collection</h4>
+                <h4 style={{ color: 'white' }}>Menu Collection</h4>
                 <button
                   onClick={() => {
                     addMenuCollection();
@@ -530,7 +871,8 @@ function Template() {
             style={{
               width: '65%',
               height: '65%',
-              background: '#f8f9fa'
+              background: '#f8f9fa',
+              marginLeft: '10%'
             }}
           >
             <FabricJSCanvas className="sample-canvas" onReady={onReady} />

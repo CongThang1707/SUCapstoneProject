@@ -15,13 +15,13 @@ class boxItemService {
     }
   }
 
-  async createBoxItem(boxId, fontId, fontSize, textFormat, boxType, boxColor) {
+  async createBoxItem(boxId, fontId, fontSize, textFormat, boxItemType, boxColor) {
     const reqBody = {
       boxId: boxId,
       fontId: fontId,
       fontSize: fontSize,
       textFormat: textFormat,
-      boxType: boxType,
+      boxItemType: boxItemType,
       boxColor: boxColor
     };
 
@@ -36,19 +36,19 @@ class boxItemService {
     }
   }
 
-  async updateBoxItem(boxId, fontId, fontSize, textFormat, boxType, boxColor) {
+  async updateBoxItem(boxId, fontId, fontSize, textFormat, boxItemType, boxColor) {
     const reqBody = {
       fontId: fontId,
       fontSize: fontSize,
       textFormat: textFormat,
-      boxType: boxType,
+      boxItemType: boxItemType,
       boxColor: boxColor
     };
 
     try {
       const response = await axios.put(`https://ec2-3-1-81-96.ap-southeast-1.compute.amazonaws.com/api/BoxItem/${boxId}`, reqBody);
 
-      console.log('Resposne message: ' + JSON.stringify(response.data));
+      console.log('Resposne update box item: ' + JSON.stringify(response.data));
     } catch (error) {
       console.log('Error message: ' + error.message);
     }

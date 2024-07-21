@@ -1,17 +1,25 @@
 .app {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+ 
   font-family: 'Arial, sans-serif';
+  height: 100vh; /* Ensure it covers the full viewport height */
 }
+
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 15px 20px;
-  background-color: #343a40;
+  // background-color: #343a40;
+  background-color: #1b1c20;
   color: #fff;
+}
+
+.narrow-tab {
+  width: 50%;
+  
 }
 
 .logo {
@@ -33,6 +41,8 @@
   color: #fff;
 }
 
+
+
 .save-btn {
   background-color: #28a745;
 }
@@ -48,22 +58,29 @@
 .main {
   display: flex;
   flex: 1;
+  background-color: #272a2f;
 }
 
 .sidebar-container {
   display: flex;
+  margin-left: '5%';
+  
+
 }
 
 
 
 .sidebar {
   width: 100px;
-  background-color: #f8f9fa;
-  border-right: 1px solid #dee2e6;
-  padding: 20px;
+ 
+  background-color: #131315;
+  
+  padding: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  color: 'white'; 
+  height: 60%;
 }
 
 .sidebar button {
@@ -93,25 +110,36 @@
 
 .tab-container {
   position: absolute; /* Position it absolutely */
-  top: 70px; /* Offset by the header height */
-  left: 100px; /* Offset by the sidebar width */
-  background-color: #f1f3f5;
+  top: 77px; /* Offset by the header height */
+  left: 110px; /* Offset by the sidebar width */
+  background-color: 'transparent';
   transition: opacity 0.3s ease-in-out; /* Add transition for opacity */
   display: none;
   z-index: 2; /* Ensure it appears on top */
-  opacity: 0; /* Start with opacity 0 */
+  opacity: 0; 
+  width: 20%;
+  height: 10%;
+  
+  
 }
+
+
 
 .tab-container.open {
   display: block;
-  padding: 20px;
+  // padding: 20px;
   opacity: 1; /* Set opacity to 1 when open */
+  // margin-top: '10%';
 }
 
 .tab {
-  padding: 20px;
-  background-color: #fff;
-  border: 1px solid #dee2e6;
+  padding: 17px;
+  background-color: #131315;
+  // border: 1px solid #dee2e6;
+  border-radius: 10px;
+  color: 'white';
+ 
+  
 }
 
 .tab h4 {
@@ -130,6 +158,8 @@
 
 .tab button:hover {
   background-color: #e2e6ea;
+  transition: transform 0.3s ease;
+  transform: scale(1.07);
 }
 
 .canvas-area {
@@ -137,7 +167,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #fff;
+  background-color: #272a2f;
   position: relative; /* Ensure it stays relative to its container */
   z-index: 1; /* Ensure it stays below the tab-container */
 }
@@ -150,7 +180,7 @@
 }
 
 .sample-canvas {
-  border: 3px solid salmon;
+  // border: 3px solid salmon;
   width: 100%;
   height: 100%;
 }
@@ -183,4 +213,44 @@
   border-radius: 4px;
   width: 30px;
   height: 30px;
+}
+
+.canvas-area.sidebar-open {
+  transform: translateX(1); /* Move right to make room for sidebar */
+}
+
+
+.custom-scrollbar:hover::-webkit-scrollbar {
+  width: 7px; /* Width of the scrollbar */
+}
+
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 0px; /* Width of the scrollbar */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent; /* Color of the scrollbar track */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #888; /* Color of the scrollbar thumb */
+  border-radius: 5px; /* Rounded corners of the thumb */
+}
+
+
+.custom-scrollbar {
+  display: flex;
+  flex-direction: column;
+  max-height: 300px;
+  width: 100%;
+  
+}
+
+.zoom-hover {
+  transition: transform 0.3s ease; /* Smooth transition for the zoom effect */
+}
+
+.zoom-hover:hover {
+  transform: scale(1.05); /* Scale the image to 110% on hover */
 }

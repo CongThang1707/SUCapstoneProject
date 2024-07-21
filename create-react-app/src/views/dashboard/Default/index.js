@@ -11,13 +11,18 @@ import TotalIncomeDarkCard from './TotalIncomeDarkCard';
 import TotalIncomeLightCard from './TotalIncomeLightCard';
 import TotalGrowthBarChart from './TotalGrowthBarChart';
 import { gridSpacing } from 'store/constant';
+import { useSelector } from 'react-redux';
 
 // ==============================|| DEFAULT DASHBOARD ||============================== //
 
 const Dashboard = () => {
+  const token = useSelector((state) => state.auth.token);
+  const userId = useSelector((state) => state.auth.userId);
   const [isLoading, setLoading] = useState(true);
   useEffect(() => {
     setLoading(false);
+    console.log('Token data: ', token);
+    console.log('userId: ', userId);
   }, []);
 
   return (
