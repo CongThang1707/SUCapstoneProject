@@ -148,7 +148,7 @@ const MyTemplate = () => {
         params: {
           brandId: brandId,
           pageNumber: 1,
-          pageSize: 10 // Adjust pageSize as needed
+          pageSize: 1000 // Adjust pageSize as needed
         }
       });
       if (!response.data) {
@@ -256,6 +256,7 @@ const MyTemplate = () => {
                       <TableCell>Width</TableCell>
                       <TableCell>Height</TableCell>
                       <TableCell>Image</TableCell>
+                      <TableCell>Actions</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>

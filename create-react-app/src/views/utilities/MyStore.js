@@ -248,6 +248,7 @@ const MyStore = () => {
                       <TableCell>Store Location</TableCell>
                       <TableCell>Email</TableCell>
                       <TableCell>Phone number</TableCell>
+                      <TableCell>Actions</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>

@@ -25,6 +25,8 @@ const StoreDetails = Loadable(lazy(() => import('views/sample-page/StoreDetails'
 const ProductDetails = Loadable(lazy(() => import('views/sample-page/ProductDetails')));
 const TemplateDetails = Loadable(lazy(() => import('views/sample-page/TemplateDetails')));
 const MyMenuDetails = Loadable(lazy(() => import('views/sample-page/MyMenuDetails')));
+const MyProductDetails = Loadable(lazy(() => import('views/sample-page/MyProductDetails')));
+const MyCollectionDetails = Loadable(lazy(() => import('views/sample-page/MyCollectionDetails')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -167,6 +169,14 @@ const BrandManagerRoutes = {
     {
       path: 'my-menu-details',
       element: <MyMenuDetails />
+    },
+    {
+      path: 'my-product-details',
+      element: <MyProductDetails />
+    },
+    {
+      path: 'my-collection-details',
+      element: <MyCollectionDetails />
     }
   ]
 };
