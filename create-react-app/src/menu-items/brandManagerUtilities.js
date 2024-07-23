@@ -83,6 +83,14 @@ const brandManagerUtilities = {
       breadcrumbs: false
     },
     {
+      id: 'util-display',
+      title: 'Display',
+      type: 'item',
+      url: 'pages/choose-template',
+      icon: icons.IconWindmill,
+      breadcrumbs: false
+    },
+    {
       id: 'icons',
       title: 'Icons',
       type: 'collapse',

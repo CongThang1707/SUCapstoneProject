@@ -63,7 +63,7 @@ const utilities = {
       id: 'util-display',
       title: 'Display',
       type: 'item',
-      url: '/pages/display',
+      url: 'pages/choose-template',
       icon: icons.IconWindmill,
       breadcrumbs: false
     },

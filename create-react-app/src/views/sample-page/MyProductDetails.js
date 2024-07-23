@@ -101,6 +101,8 @@ const MyProductDetails = () => {
         return 'M';
       case 2:
         return 'L';
+      case 3:
+        return 'N';
       default:
         return 'Unknown';
     }
