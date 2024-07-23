@@ -7,8 +7,9 @@ class templateService {
         `https://ec2-3-1-81-96.ap-southeast-1.compute.amazonaws.com/api/Templates?templateId=${templateId}&pageSize=10`
       );
 
-      console.log(response.data);
-      return response.data;
+      const result = response.data[0].templateImgPath;
+      //console.log('result: ', response.data[0].templateImgPath);
+      return result;
     } catch (error) {
       console.log('Error message: ' + error.message);
     }
@@ -21,6 +22,7 @@ class templateService {
       templateDescription: templateDescription,
       templateWidth: templateWidth,
       templateHeight: templateHeight,
+      templateType: 0,
       templateImgPath: templateImgPath
     };
 

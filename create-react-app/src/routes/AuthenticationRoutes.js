@@ -18,7 +18,7 @@ const AuthenticationRoutes = {
   element: <MinimalLayout />,
   children: [
     {
-      path: '/pages/template',
+      path: '/pages/template/:templateId',
       element: <Template />
     },
     {
