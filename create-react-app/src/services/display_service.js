@@ -23,7 +23,7 @@ class displayService {
 
     try {
       const response = await axios.post(`https://ec2-3-1-81-96.ap-southeast-1.compute.amazonaws.com/api/Displays/V4`, reqBody);
-
+      console.log('Response message: ' + JSON.stringify(response.data.templateId));
       return response.data;
     } catch (error) {
       console.log('Error message: ' + JSON.stringify(error.message));

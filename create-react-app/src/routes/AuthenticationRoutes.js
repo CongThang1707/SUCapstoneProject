@@ -10,6 +10,7 @@ const AuthLogin3 = Loadable(lazy(() => import('views/pages/authentication/authen
 const Template = Loadable(lazy(() => import('views/utilities/Template')));
 const Test = Loadable(lazy(() => import('views/utilities/renderTemplate')));
 const Display = Loadable(lazy(() => import('views/utilities/Display')));
+const ChooseTemplate = Loadable(lazy(() => import('views/sample-page/ChooseTemplate')));
 
 // ==============================|| AUTHENTICATION ROUTING ||============================== //
 
@@ -22,8 +23,12 @@ const AuthenticationRoutes = {
       element: <Template />
     },
     {
-      path: '/pages/display',
+      path: '/pages/display/:templateId',
       element: <Display />
+    },
+    {
+      path: '/pages/choose-template',
+      element: <ChooseTemplate />
     },
     {
       path: '/pages/getTemplate',
@@ -31,7 +36,6 @@ const AuthenticationRoutes = {
     },
     {
       path: '/',
-
       element: <AuthLogin3 />
     }
   ]

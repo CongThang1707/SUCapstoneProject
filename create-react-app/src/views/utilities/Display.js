@@ -10,10 +10,10 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import CircularProgress from '@mui/material/CircularProgress';
 import '../../assets/scss/display.scss'; // Import the CSS file
-// import { useParams } from 'react-router';
+import { useParams } from 'react-router';
 
 const Display = () => {
-  // const { templateId } = useParams();
+  const { templateId } = useParams();
   const [menus, setMenus] = useState([]);
   const [storeDevices, setStoreDevices] = useState([]);
   const [selectedMenu, setSelectedMenu] = useState(null);
@@ -49,7 +49,7 @@ const Display = () => {
   }, [menus, storeDevices]);
 
   const getTemplate = async () => {
-    await template_service.getTemplate(551).then((data) => {
+    await template_service.getTemplate(templateId).then((data) => {
       setTemplate(data);
     });
   };
@@ -133,9 +133,9 @@ const Display = () => {
   const createDisplay = async () => {
     setLoading(true);
     await display_service
-      .createDisplay(selectedStoreDevice, selectedMenu, 551, 23.99)
+      .createDisplay(selectedStoreDevice, selectedMenu, templateId, 23.99)
       .then((data) => {
-        const displayId = data;
+        const displayId = data.displayId;
         const link = `https://ec2-3-1-81-96.ap-southeast-1.compute.amazonaws.com/api/Displays/V2/${displayId}/image`;
         console.log('link: ', link);
         console.log('Display response: ', data);
