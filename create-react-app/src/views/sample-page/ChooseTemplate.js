@@ -14,7 +14,7 @@ const ChooseTemplate = () => {
   const navigate = useNavigate();
 
   const handleViewDetails = (template) => {
-    navigate('/pages/display', { state: { templateData: template.templateId } });
+    navigate(`/pages/display/${template.templateId}`);
     console.log(template.templateId);
   };
 

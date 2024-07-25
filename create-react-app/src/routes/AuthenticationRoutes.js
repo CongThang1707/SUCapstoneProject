@@ -19,11 +19,11 @@ const AuthenticationRoutes = {
   element: <MinimalLayout />,
   children: [
     {
-      path: '/pages/template',
+      path: '/pages/template/:templateId',
       element: <Template />
     },
     {
-      path: '/pages/display',
+      path: '/pages/display/:templateId',
       element: <Display />
     },
     {

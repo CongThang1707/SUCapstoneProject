@@ -12,21 +12,21 @@ class displayService {
     }
   }
 
-  async createDisplay(storeDeviceId, menuId, collectionId, templateId, activeHour) {
+  async createDisplay(storeDeviceId, menuId, templateId, activeHour) {
     const reqBody = {
       storeDeviceId: storeDeviceId,
       menuId: menuId,
-      collectionId: collectionId,
+      collectionId: 0,
       templateId: templateId,
       activeHour: activeHour
     };
 
     try {
-      const response = await axios.post(`https://ec2-3-1-81-96.ap-southeast-1.compute.amazonaws.com/api/Displays`, reqBody);
-
+      const response = await axios.post(`https://ec2-3-1-81-96.ap-southeast-1.compute.amazonaws.com/api/Displays/V4`, reqBody);
+      console.log('Response message: ' + JSON.stringify(response.data.templateId));
       return response.data;
     } catch (error) {
-      console.log('Error message: ' + error.message);
+      console.log('Error message: ' + JSON.stringify(error.message));
     }
   }
 }

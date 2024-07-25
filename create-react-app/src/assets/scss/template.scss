@@ -42,9 +42,15 @@
 }
 
 
-
 .save-btn {
   background-color: #28a745;
+}
+
+
+.save-btn:hover {
+ 
+  transition: transform 0.3s ease;
+  transform: scale(1.07);
 }
 
 .share-btn {
@@ -72,9 +78,7 @@
 
 .sidebar {
   width: 100px;
- 
   background-color: #131315;
-  
   padding: 10px;
   display: flex;
   flex-direction: column;

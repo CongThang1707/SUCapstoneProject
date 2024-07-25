@@ -14,40 +14,34 @@ import axios from 'axios';
 
 import boxService from 'services/box_service';
 import layerService from 'services/layer_service';
-import templateService from 'services/template_service';
+// import templateService from 'services/template_service';
 import boxItemService from 'services/box_item_service';
 import layerItemService from 'services/layer_item_service';
 import fontService from 'services/font_service';
 import cloudinaryService from 'services/cloudinary_service';
+import { useParams } from 'react-router';
 function Template() {
+  const { templateId } = useParams();
   const [activeTab, setActiveTab] = useState(null);
   const { editor, onReady } = useFabricJSEditor();
   const [color, setColor] = useState('#35363a');
   const [fontSize, setFontSize] = useState(20);
-  const [templateId, setTemplateId] = useState(null);
+  // const [templateId, setTemplateId] = useState(null);
   const [isDisabled, setIsDisabled] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [fonts, setFonts] = useState([]);
-  const [backgroundColor, setBackgroundColor] = useState('#fff');
+  const [backgroundColor, setBackgroundColor] = useState('green');
   const [assetImage, setAssetImage] = useState([]);
   // const [isBold, setIsBold] = useState(false);
   // const [isItalic, setIsItalic] = useState(false);
 
   const box_service = new boxService();
   const layer_service = new layerService();
-  const template_service = new templateService();
+  // const template_service = new templateService();
   const box_item_service = new boxItemService();
   const layer_item_service = new layerItemService();
   const font_service = new fontService();
   const cloudinary_service = new cloudinaryService();
-
-  // const images = [
-  //   'https://t3.ftcdn.net/jpg/05/34/87/74/360_F_534877406_qPhW6XnJsy3V7ynES5WeZiGPX06iv1hk.jpg',
-  //   'https://t3.ftcdn.net/jpg/06/62/44/90/360_F_662449057_Cyc3Fqh3qSZoBWJc5xvmqcZ8roYgt17I.jpg',
-  //   'https://t4.ftcdn.net/jpg/00/84/85/13/360_F_84851321_FgWEDdRksD2ZxdddtZA8rkLAMiRpPGeU.jpg',
-  //   'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQboYFDZUxSy558UH73gbtLhNpHeOkK9ICbLQ&s',
-  //   'https://bevivu.com/wp-content/uploads/image8/2024/02/jade-scence-hotel070220241707297614.jpeg'
-  // ];
 
   // const cloudName = import.meta.env.VITE_CLOUD_NAME;
   // const uploadPreset = import.meta.env.VITE_UPLOAD_PRESET;
@@ -94,23 +88,23 @@ function Template() {
     }
   };
 
-  const createUserTemplate = async () => {
-    try {
-      const id = await template_service.createTemplate(
-        2,
-        'Demo',
-        'Demo description',
-        700,
-        700,
-        'https://t4.ftcdn.net/jpg/05/56/81/55/360_F_556815523_AYrXaaLIUESVAphY1jQ02wGJ5M8qMtTs.jpg'
-      );
+  // const createUserTemplate = async () => {
+  //   try {
+  //     const id = await template_service.createTemplate(
+  //       2,
+  //       'Demo',
+  //       'Demo description',
+  //       1280,
+  //       720,
+  //       'https://t4.ftcdn.net/jpg/05/56/81/55/360_F_556815523_AYrXaaLIUESVAphY1jQ02wGJ5M8qMtTs.jpg'
+  //     );
 
-      setTemplateId(id);
-      return id;
-    } catch (error) {
-      console.log('Error message: ' + error.message);
-    }
-  };
+  //     setTemplateId(id);
+  //     return id;
+  //   } catch (error) {
+  //     console.log('Error message: ' + error.message);
+  //   }
+  // };
 
   const createLayer = async (layerType) => {
     try {
@@ -185,7 +179,8 @@ function Template() {
   };
 
   useEffect(() => {
-    createUserTemplate();
+    // createUserTemplate();
+    console.log('template id: ', templateId);
     getAllFont();
     getImages('asset/images');
 
@@ -334,31 +329,78 @@ function Template() {
   //   }
   // };
 
-  const addImage = (file) => {
+  const addImage = (file, boxId) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       fabric.Image.fromURL(e.target.result, (img) => {
-        img.scale(0.75);
-        editor.canvas.add(img);
+        const myImg = img.set({
+          // width: 200,
+          // height: 100,
+          selectable: true, // Make sure the image is selectable
+          evented: true,
+          scaleX: 0.5,
+          scaleY: 0.5
+        });
+
+        // myImg.on('mouse:down', function () {
+        //   console.log('sdads');
+        // });
+
+        // console.log('width: ', myImg.width, 'height: ', myImg.height);
+        // img.scale(0.75);
+
+        // bindImageEvents(myImg);
+
+        myImg.on('modified', function () {
+          console.log('Left: ' + myImg.left + ' Top: ' + myImg.top);
+          console.log('Width: ' + myImg.getScaledWidth() + ' Height: ' + myImg.getScaledHeight());
+          updateBox(boxId, myImg.left, myImg.top, myImg.getScaledWidth(), myImg.getScaledHeight(), 100);
+        });
+
+        editor.canvas.add(myImg);
         editor.canvas.renderAll();
       });
     };
     reader.readAsDataURL(file);
   };
 
+  // function bindImageEvents(imageObject) {
+  //   imageObject.on('mousedown', function () {
+  //     // console.log('width: ', imageObject.width, 'height: ', imageObject.height);
+  //     // console.log('left: ', imageObject.left, 'top: ', imageObject.top);
+  //   });
+
+  //   imageObject.on('modified', function () {
+  //     console.log('Left: ' + imageObject.left + ' Top: ' + imageObject.top);
+  //     console.log('Width: ' + imageObject.getScaledWidth() + ' Height: ' + imageObject.getScaledHeight());
+  //     updateBox();
+
+  //   });
+  // }
+
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
+    const formData = new FormData();
+    const preset_key = 'xdm798lx';
     if (file) {
       // const url = URL.createObjectURL(file);
+      formData.append('file', file);
+      formData.append('upload_preset', preset_key);
 
-      addImage(file);
-      uploadWidget();
-      const layerId = await createLayer(1);
-      const layerItemId = await createLayerItem(layerId, file.name);
-      const boxId = await createBox(layerId, 0);
-      console.log('layerId: ', layerId);
-      console.log('layerItemId: ', layerItemId);
-      console.log('boxId: ', boxId);
+      axios.post('https://api.cloudinary.com/v1_1/dchov8fes/image/upload', formData).then(async (result) => {
+        const layerItemValue = result.data.secure_url;
+        const layerId = await createLayer(1);
+        const layerItemId = await createLayerItem(layerId, layerItemValue);
+        await createBox(layerId, 0).then((boxId) => {
+          addImage(file, boxId);
+        });
+        console.log('layerId: ', layerId);
+        console.log('layerItemId: ', layerItemId);
+
+        // console.log('Response from cloudinary when upload image:', JSON.stringify(layerItemValue));
+      });
+      // addImage(file, boxId);
+      // uploadWidget();
     }
   };
 
@@ -470,8 +512,8 @@ function Template() {
       console.log('width: ', text.width, 'height: ', text.height);
     });
 
-    text.on('fill:changed', function () {
-      console.log('changed');
+    text.on('object:selected', function (options) {
+      options.target.bringToFront();
     });
 
     // console.log('Widdth: ', text.width, 'Height: ', text.height);
@@ -490,8 +532,8 @@ function Template() {
     });
 
     editor.canvas.add(rect);
-    const width = rect.width;
-    const height = rect.height;
+    let width = rect.width;
+    let height = rect.height;
 
     const layerId = await createLayer(2);
     const boxId = await createBox(layerId, 1);
@@ -505,8 +547,13 @@ function Template() {
 
     rect.on('modified', function () {
       updateBox(boxId, rect.left, rect.top, width, height, 100);
-
+      console.log('width: ', width, 'height: ', height);
       // console.log('Left: ' + rect.left + ' Top: ' + rect.top);
+    });
+
+    rect.on('scaling', function () {
+      width = rect.width * rect.scaleX;
+      height = rect.height * rect.scaleY;
     });
 
     // editor.canvas.renderAll();
@@ -525,8 +572,8 @@ function Template() {
       selectionBackgroundColor: 'black'
     });
 
-    const width = rect.width;
-    const height = rect.height;
+    let width = rect.width;
+    let height = rect.height;
 
     editor.canvas.add(rect);
 
@@ -541,6 +588,11 @@ function Template() {
     console.log('Layer id: ', layerId);
     console.log('Box id: ', boxId);
     console.log('Box item id: ', boxItemId);
+
+    rect.on('scaling', function () {
+      width = rect.width * rect.scaleX;
+      height = rect.height * rect.scaleY;
+    });
   };
 
   const addBackgroundImage = (file) => {
@@ -617,57 +669,6 @@ function Template() {
     console.log('clicked image');
   };
 
-  // function generateRandomName() {
-  //   const timestamp = new Date().getTime(); // Get current timestamp
-  //   const randomString = Math.random().toString(36).substring(2, 8); // Generate random string
-
-  //   // Combine random string and timestamp to create a unique name
-  //   const randomName = `${randomString}_${timestamp}`;
-
-  //   return randomName;
-  // }
-
-  // const base64Decoder = (base64) => {
-  //   // const http = new XMLHttpRequest();
-
-  //   // const name = generateRandomName();
-
-  //   return new Promise((resolve, reject) => {
-  //     const http = new XMLHttpRequest();
-  //     const name = generateRandomName();
-
-  //     http.onload = () => {
-  //       const url = window.URL.createObjectURL(http.response);
-  //       // Optionally create a link to download the image
-  //       var link = document.createElement('a');
-  //       // link.href = url;
-  //       link.download = name;
-  //       // link.click();
-
-  //       // Resolve with the URL of the created image
-  //       return resolve(url);
-  //     };
-
-  //     http.onerror = () => {
-  //       reject(new Error('Failed to decode base64 to image.'));
-  //     };
-
-  //     //   http.onload = () => {
-  //     //     var url = window.URL.createObjectURL(http.response);
-  //     //     var link = document.createElement('a');
-  //     //     link.href = url;
-  //     //     link.download = name;
-  //     //     link.click();
-  //     //     // console.log("Result: ", http.response);
-  //     //     // console.log('URL: ', link);
-  //     //     // return url;
-  //     //   };
-  //     http.responseType = 'blob';
-  //     http.open('GET', base64, true);
-  //     http.send();
-  //   });
-  // };
-
   const updateTemplateImg = (templateId, data) => {
     try {
       axios.put(`https://ec2-3-1-81-96.ap-southeast-1.compute.amazonaws.com/api/Templates/${templateId}/image?TemplateImgPath=${data}`);
@@ -736,7 +737,7 @@ function Template() {
           <button className="save-btn" onClick={takeScreenShot}>
             Save
           </button>
-          <button className="share-btn">Share</button>
+          {/* <button className="share-btn">Share</button> */}
           <div className="profile">User</div>
         </div>
       </header>
