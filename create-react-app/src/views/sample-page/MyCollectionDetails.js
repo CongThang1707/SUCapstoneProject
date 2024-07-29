@@ -31,12 +31,12 @@ import {
 import axios from 'axios';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit'; // Import Edit Icon
+import EditIcon from '@mui/icons-material/Edit';
 
-const MenuDetails = () => {
+const MyCollectionDetail = () => {
   const location = useLocation();
-  const { menuData: initialMenuData } = location.state || {}; // Get menu data from location state
-  const [menuData, setMenuData] = useState(initialMenuData || {});
+  const { collectionData: initialCollectionData } = location.state || {}; // Get collection data from location state
+  const [collectionData, setCollectionData] = useState(initialCollectionData || {});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [productData, setProductData] = useState({}); // State to store product details
@@ -116,9 +116,9 @@ const MenuDetails = () => {
           [newItem.productGroupId]: [...(prevData[newItem.productGroupId] || []), newItem]
         }));
 
-        setMenuData((prevMenuData) => ({
-          ...prevMenuData,
-          productGroups: prevMenuData.productGroups.map((group) =>
+        setCollectionData((prevCollectionData) => ({
+          ...prevCollectionData,
+          productGroups: prevCollectionData.productGroups.map((group) =>
             group.productGroupId === newItem.productGroupId
               ? {
                   ...group,
@@ -135,7 +135,7 @@ const MenuDetails = () => {
       }
     } catch (error) {
       console.error('Error adding product group item:', error);
-      setError('An error occurred while creating the menu item.');
+      setError('An error occurred while creating the collection item.');
     } finally {
       setShowAddProductGroupItemDialog(false);
     }
@@ -159,10 +159,11 @@ const MenuDetails = () => {
         productGroupMaxCapacity: parseInt(editingProductGroup.productGroupMaxCapacity, 10) || 0
       };
       const response = await axios.put(`https://3.1.81.96/api/ProductGroup/${editingProductGroup.productGroupId}`, updatedGroupData);
+
       if (response.status === 200) {
-        setMenuData((prevMenuData) => ({
-          ...prevMenuData,
-          productGroups: prevMenuData.productGroups.map((group) =>
+        setCollectionData((prevCollectionData) => ({
+          ...prevCollectionData,
+          productGroups: prevCollectionData.productGroups.map((group) =>
             group.productGroupId === editingProductGroup.productGroupId ? response.data : group
           )
         }));
@@ -196,16 +197,12 @@ const MenuDetails = () => {
 
   const confirmDeleteProductGroup = async () => {
     try {
-      const response = await axios.delete(`https://3.1.81.96/api/ProductGroup/${productGroupToDelete}`); // Assuming this is your API endpoint
-
+      const response = await axios.delete(`https://3.1.81.96/api/ProductGroup/${productGroupToDelete}`);
       if (response.status === 200) {
-        // Update the menu data to remove the deleted product group
-        setMenuData((prevMenuData) => ({
-          ...prevMenuData,
-          productGroups: prevMenuData.productGroups.filter((group) => group.productGroupId !== productGroupToDelete)
+        setCollectionData((prevCollectionData) => ({
+          ...prevCollectionData,
+          productGroups: prevCollectionData.productGroups.filter((group) => group.productGroupId !== productGroupToDelete)
         }));
-
-        // Update the productGroupItemsData and productSizePrices to remove deleted items
         setProductGroupItemsData((prevData) => {
           const newData = { ...prevData };
           delete newData[productGroupToDelete];
@@ -220,7 +217,6 @@ const MenuDetails = () => {
           }
           return newData;
         });
-
         setOpenSnackbar(true);
         setSnackbarMessage('Product group deleted successfully!');
       } else {
@@ -231,7 +227,7 @@ const MenuDetails = () => {
       console.error('Error deleting product group:', error);
       setError('An error occurred while deleting the product group.');
     } finally {
-      setShowDeleteConfirmation(false); // Close the dialog
+      setShowDeleteConfirmation(false);
     }
   };
 
@@ -245,23 +241,19 @@ const MenuDetails = () => {
 
   const handleAddProductGroup = async () => {
     try {
-      // Prepare data to send to the API
       const dataToSend = {
-        menuId: menuData.menuId,
-        collectionId: null,
+        menuId: null,
+        collectionId: collectionData.collectionId,
         productGroupName: newProductGroupData.productGroupName,
         productGroupMaxCapacity: parseInt(newProductGroupData.productGroupMaxCapacity, 10) || 0, // Parse to int or default to 0
         haveNormalPrice: newProductGroupData.haveNormalPrice
       };
-
       const response = await axios.post('https://3.1.81.96/api/ProductGroup', dataToSend);
       if (response.status === 201) {
-        // Successfully created new product group
-        setMenuData((prevMenuData) => {
-          const updatedProductGroups = [...(prevMenuData.productGroups || []), response.data];
-          return { ...prevMenuData, productGroups: updatedProductGroups };
+        setCollectionData((prevCollectionData) => {
+          const updatedProductGroups = [...(prevCollectionData.productGroups || []), response.data];
+          return { ...prevCollectionData, productGroups: updatedProductGroups };
         });
-
         setOpenSnackbar(true);
         setSnackbarMessage('Product group added successfully!');
       } else {
@@ -277,32 +269,30 @@ const MenuDetails = () => {
         productGroupName: '',
         productGroupMaxCapacity: '',
         haveNormalPrice: true
-      }); // Reset all the fields in newProductGroupData
+      });
     }
   };
+
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       setError(null);
 
       try {
-        // Fetch product group items for this menu
-        const productGroupResponse = await axios.get(`https://3.1.81.96/api/ProductGroup/GroupItem?menuId=${menuData.menuId}`);
+        const productGroupResponse = await axios.get(
+          `https://3.1.81.96/api/ProductGroup/GroupItem?collectionId=${collectionData.collectionId}`
+        );
         const productGroupItems = productGroupResponse.data;
-        // Get unique product IDs from all product groups
         const productIds =
-          menuData.productGroups && menuData.productGroups.length > 0
+          collectionData.productGroups && collectionData.productGroups.length > 0
             ? [...new Set(productGroupItems.flatMap((group) => group.productGroupItems?.map((item) => item.productId) || []))]
             : [];
-        // Fetch product details for all unique product IDs
+
         if (productIds.length > 0) {
-          // Fetch product size prices for all unique product IDs
-          const productResponses = await Promise.all(
-            productIds.map((id) => axios.get(`https://3.1.81.96/api/Products?productId=${id}`)) // Assuming query parameter
-          );
+          const productResponse = await Promise.all(productIds.map((id) => axios.get(`https://3.1.81.96/api/Products?productId=${id}`)));
 
           const newProductMap = {};
-          productResponses.forEach((response) => {
+          productResponse.forEach((response) => {
             // Access the first product in the response array
             const product = response.data[0];
             if (product && product.productId) {
@@ -327,23 +317,22 @@ const MenuDetails = () => {
           setProductSizePrices(newProductSizePricesData);
         }
 
-        // Re-organize product group items based on productGroupId
         const reorganizedProductGroups = {};
         productGroupItems.forEach((group) => {
           reorganizedProductGroups[group.productGroupId] = group.productGroupItems;
         });
 
-        setProductGroupItemsData(reorganizedProductGroups); // Update state
+        setProductGroupItemsData(reorganizedProductGroups);
       } catch (error) {
         console.error('Error fetching data:', error);
-        setError(error.message); // Store the error message as a string
+        setError(error.message);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchData();
-  }, [menuData.menuId, menuData.productGroups]);
+  }, [collectionData.collectionId, collectionData.productGroups]);
 
   const getProductSizeType = (sizeType) => {
     switch (sizeType) {
@@ -361,12 +350,12 @@ const MenuDetails = () => {
   };
 
   return (
-    <MainCard title={<Typography variant="h5">Menu Details</Typography>}>
+    <MainCard title={<Typography variant="h5">Collection Details</Typography>}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Typography variant="subtitle1">Menu ID: {menuData.menuId}</Typography>
-        <Typography variant="subtitle1">Brand ID: {menuData.brandId}</Typography>
-        <Typography variant="subtitle1">Name: {menuData.menuName}</Typography>
-        <Typography variant="subtitle1">Description: {menuData.menuDescription}</Typography>
+        <Typography variant="subtitle1">Collection ID: {collectionData.collectionId}</Typography>
+        <Typography variant="subtitle1">Brand ID: {collectionData.brandId}</Typography>
+        <Typography variant="subtitle1">Collection Name: {collectionData.collectionName}</Typography>
+        <Typography variant="subtitle1">Collection Description: {collectionData.collectionDescription}</Typography>
         <Typography variant="h6">Product Groups:</Typography>
         {isLoading ? (
           <CircularProgress />
@@ -387,7 +376,7 @@ const MenuDetails = () => {
               </Button>
             </Box>
             <List>
-              {menuData.productGroups?.map((group) => (
+              {collectionData.productGroups?.map((group) => (
                 <Accordion key={group.productGroupId} sx={{ border: '1px solid lightgray', mb: 2 }}>
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                     <Typography>{group.productGroupName}</Typography>
@@ -618,5 +607,4 @@ const MenuDetails = () => {
     </MainCard>
   );
 };
-
-export default MenuDetails;
+export default MyCollectionDetail;

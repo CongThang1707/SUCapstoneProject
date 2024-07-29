@@ -17,6 +17,7 @@ const UtilsMyBrand = Loadable(lazy(() => import('views/utilities/MyBrand')));
 const EntityTemplate = Loadable(lazy(() => import('views/entity/Template')));
 const EntityMenu = Loadable(lazy(() => import('views/entity/Menu')));
 const EntityCollection = Loadable(lazy(() => import('views/entity/Collection')));
+const EntityFont = Loadable(lazy(() => import('views/entity/Font')));
 // sample page routing
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 const StoreDetails = Loadable(lazy(() => import('views/sample-page/StoreDetails')));
@@ -24,7 +25,7 @@ const ProductDetails = Loadable(lazy(() => import('views/sample-page/ProductDeta
 const TemplateDetails = Loadable(lazy(() => import('views/sample-page/TemplateDetails')));
 const MenuDetails = Loadable(lazy(() => import('views/sample-page/MenuDetails')));
 const CollectionDetails = Loadable(lazy(() => import('views/sample-page/CollectionDetails')));
-
+const BrandStaffDetails = Loadable(lazy(() => import('views/sample-page/BrandStaffDetails')));
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
@@ -121,6 +122,10 @@ const MainRoutes = {
         {
           path: 'entity-collection',
           element: <EntityCollection />
+        },
+        {
+          path: 'entity-font',
+          element: <EntityFont />
         }
       ]
     },
@@ -147,6 +152,10 @@ const MainRoutes = {
     {
       path: 'collection-details',
       element: <CollectionDetails />
+    },
+    {
+      path: 'brand-details',
+      element: <BrandStaffDetails />
     }
   ]
 };

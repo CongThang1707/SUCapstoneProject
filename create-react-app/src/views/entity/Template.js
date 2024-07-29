@@ -50,8 +50,7 @@ const EntityTemplate = () => {
     brandId: '',
     templateName: '',
     templateDescription: '',
-    templateWidth: '',
-    templateHeight: '',
+    templateOrientation: 'vertical',
     templateImgPath: ''
   });
 
@@ -64,6 +63,10 @@ const EntityTemplate = () => {
         setOpenSnackbar(true);
         setSnackbarMessage('Template added successfully!');
         setShowAddTemplateDialog(false);
+
+        console.log('Template added successfully:', response.data);
+        // navigate('/pages/template', { state: { templateData: response.data.templateId } });
+        navigate(`/pages/template/${response.data.templateId}`);
       } else {
         console.error('Error creating template:', response);
         setError(`Error: ${response.statusText}`);
@@ -81,8 +84,9 @@ const EntityTemplate = () => {
     if (name === 'templateOrientation') {
       setNewTemplateData((prevState) => ({
         ...prevState,
-        templateWidth: value === 'horizontal' ? 1600 : 900,
-        templateHeight: value === 'horizontal' ? 900 : 1600
+        templateWidth: value === 'vertical' ? 900 : 1600,
+        templateHeight: value === 'vertical' ? 1600 : 900, // Correct the order for horizontal
+        [name]: value
       }));
     } else {
       setNewTemplateData((prevState) => ({ ...prevState, [name]: value }));
@@ -133,7 +137,7 @@ const EntityTemplate = () => {
 
       try {
         const [templateResponse, brandResponse] = await Promise.all([
-          axios.get('https://3.1.81.96/api/Templates?pageNumber=1&pageSize=100'),
+          axios.get('https://3.1.81.96/api/Templates?pageNumber=1&pageSize=1000'),
           axios.get('https://3.1.81.96/api/Brands?pageNumber=1&pageSize=100')
         ]);
 
@@ -311,7 +315,7 @@ const EntityTemplate = () => {
               labelId="orientation-select-label"
               id="orientation-select"
               name="templateOrientation"
-              value={newTemplateData.templateWidth === 900 ? 'vertical' : 'horizontal'} // Derive value from width
+              value={newTemplateData.templateOrientation}
               onChange={handleAddTemplateChange}
               label="Orientation"
             >

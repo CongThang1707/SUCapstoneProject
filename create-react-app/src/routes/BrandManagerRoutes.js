@@ -7,7 +7,6 @@ import Loadable from 'ui-component/Loadable';
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')));
 // utilities routing
 const UtilsTypography = Loadable(lazy(() => import('views/utilities/Typography')));
-const UtilsProduct = Loadable(lazy(() => import('views/utilities/Product')));
 const UtilsMaterialIcons = Loadable(lazy(() => import('views/utilities/MaterialIcons')));
 const UtilsTablerIcons = Loadable(lazy(() => import('views/utilities/TablerIcons')));
 const UtilsMyBrand = Loadable(lazy(() => import('views/utilities/MyBrand')));
@@ -25,7 +24,10 @@ const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 const StoreDetails = Loadable(lazy(() => import('views/sample-page/StoreDetails')));
 const ProductDetails = Loadable(lazy(() => import('views/sample-page/ProductDetails')));
 const TemplateDetails = Loadable(lazy(() => import('views/sample-page/TemplateDetails')));
-const MenuDetails = Loadable(lazy(() => import('views/sample-page/MenuDetails')));
+const MyMenuDetails = Loadable(lazy(() => import('views/sample-page/MyMenuDetails')));
+const MyProductDetails = Loadable(lazy(() => import('views/sample-page/MyProductDetails')));
+const MyCollectionDetails = Loadable(lazy(() => import('views/sample-page/MyCollectionDetails')));
+
 // ==============================|| MAIN ROUTING ||============================== //
 
 const BrandManagerRoutes = {
@@ -86,7 +88,7 @@ const BrandManagerRoutes = {
       children: [
         {
           path: 'util-mycollection',
-          element: <UtilsMyCollection/>
+          element: <UtilsMyCollection />
         }
       ]
     },
@@ -95,7 +97,7 @@ const BrandManagerRoutes = {
       children: [
         {
           path: 'util-mymenu',
-          element: <UtilsMyMenu/>
+          element: <UtilsMyMenu />
         }
       ]
     },
@@ -104,7 +106,7 @@ const BrandManagerRoutes = {
       children: [
         {
           path: 'util-mytemplate',
-          element: <UtilsMyTemplate/>
+          element: <UtilsMyTemplate />
         }
       ]
     },
@@ -174,8 +176,16 @@ const BrandManagerRoutes = {
       element: <TemplateDetails />
     },
     {
-      path: 'menu-details',
-      element: <MenuDetails />
+      path: 'my-menu-details',
+      element: <MyMenuDetails />
+    },
+    {
+      path: 'my-product-details',
+      element: <MyProductDetails />
+    },
+    {
+      path: 'my-collection-details',
+      element: <MyCollectionDetails />
     }
   ]
 };

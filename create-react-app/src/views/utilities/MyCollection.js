@@ -98,6 +98,7 @@ const MyCollection = () => {
         // Successfully updated collection
         setShowEditCollectionDialog(false);
         fetchCollectionData();
+
         setOpenSnackbar(true);
         setSnackbarMessage('Collection updated successfully!');
       } else {

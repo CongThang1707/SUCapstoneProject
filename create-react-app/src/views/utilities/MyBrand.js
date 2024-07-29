@@ -53,10 +53,10 @@ const MyBrand = () => {
               {brandData.brandDescription}
             </Typography>
             {brandData.brandImage && (
-              <img 
-                src={brandData.brandImage} 
-                alt={brandData.brandName} 
-                style={{ width: '150px', height: '150px', objectFit: 'cover', borderRadius: '8px' }} 
+              <img
+                src={brandData.brandImage}
+                alt={brandData.brandName}
+                style={{ width: '150px', height: '150px', objectFit: 'cover', borderRadius: '8px' }}
               />
             )}
             <Typography variant="body1" gutterBottom sx={{ mt: 2 }}>
