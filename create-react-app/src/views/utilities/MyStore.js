@@ -58,12 +58,10 @@ const MyStore = () => {
     try {
       // Retrieve brandId from localStorage
       const brandId = localStorage.getItem('brandId');
-
       const response = await axios.post('https://3.1.81.96/api/Stores', {
         ...newStoreData,
         brandId: brandId // Set brandId fetched from localStorage
       });
-
       if (response.status === 201) {
         // Successfully created new store
         setNewStoreData({
@@ -93,7 +91,6 @@ const MyStore = () => {
         ...editStoreData,
         brandId: localStorage.getItem('brandId') // Ensure brandId is included in the update payload
       });
-
       if (response.status === 200) {
         // Successfully updated store
         setShowEditStoreDialog(false);
