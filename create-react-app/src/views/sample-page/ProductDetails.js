@@ -23,9 +23,12 @@ import {
   TableHead,
   TableRow,
   IconButton,
-  Paper
+  Paper,
+  Select,
+  MenuItem,
+  InputLabel
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit'; // Import Edit Icon
+import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CloseIcon from '@mui/icons-material/Close';
 
@@ -38,24 +41,56 @@ const ProductDetails = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [productSizePrices, setProductSizePrices] = useState([]);
   const [editingSizePrice, setEditingSizePrice] = useState(null);
+  const [categories, setCategories] = useState({});
+  const [brands, setBrands] = useState({});
+  const [validationErrors, setValidationErrors] = useState({});
 
   useEffect(() => {
-    // Update local state when productData changes (after a successful update)
-    setUpdatedProductData(productData);
-    if (productData?.productId) {
-      // Check if productId is available
-      const fetchProductSizePrices = async () => {
-        try {
-          const response = await axios.get(`https://3.1.81.96/api/ProductSizePrices?productId=${productData.productId}`); // Filter by productId
-          setProductSizePrices(response.data);
-        } catch (error) {
-          console.error('Error fetching product size prices:', error);
-        }
-      };
-
-      if (productData?.productId) {
-        fetchProductSizePrices();
+    // Fetch categories data
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get('https://3.1.81.96/api/Categories?pageSize=1000');
+        const categoryMap = response.data.reduce((acc, category) => {
+          acc[category.categoryId] = {
+            name: category.categoryName,
+            brandId: category.brandId
+          };
+          return acc;
+        }, {});
+        setCategories(categoryMap);
+        fetchBrands(); // Fetch brands after categories
+      } catch (error) {
+        console.error('Error fetching categories:', error);
       }
+    };
+
+    // Fetch brands data
+    const fetchBrands = async () => {
+      try {
+        const response = await axios.get('https://3.1.81.96/api/Brands'); // Adjust URL if needed
+        const brandMap = response.data.reduce((acc, brand) => {
+          acc[brand.brandId] = brand.brandName;
+          return acc;
+        }, {});
+        setBrands(brandMap);
+      } catch (error) {
+        console.error('Error fetching brands:', error);
+      }
+    };
+
+    // Fetch product size prices if productData exists
+    const fetchProductSizePrices = async () => {
+      try {
+        const response = await axios.get(`https://3.1.81.96/api/ProductSizePrices?productId=${productData.productId}`);
+        setProductSizePrices(response.data);
+      } catch (error) {
+        console.error('Error fetching product size prices:', error);
+      }
+    };
+
+    if (productData?.productId) {
+      fetchCategories();
+      fetchProductSizePrices();
     }
   }, [productData]);
 
@@ -67,6 +102,8 @@ const ProductDetails = () => {
         return 'M';
       case 2:
         return 'L';
+      case 3:
+        return 'N';
       default:
         return 'Unknown';
     }
@@ -79,16 +116,68 @@ const ProductDetails = () => {
     setUpdatedProductData((prevData) => ({ ...prevData, [name]: value }));
   };
 
+  const validateProductData = () => {
+    const errors = {};
+    if (!updatedProductData.categoryId) errors.categoryId = 'Category is required';
+    if (!updatedProductData.productName) errors.productName = 'Product Name is required';
+    if (!updatedProductData.productDescription) errors.productDescription = 'Product Description is required';
+    return errors;
+  };
+
+  const validateSizePrices = (prices) => {
+    const sortedPrices = prices.sort((a, b) => a.productSizeType - b.productSizeType);
+
+    for (let i = 0; i < sortedPrices.length - 1; i++) {
+      if (sortedPrices[i].price >= sortedPrices[i + 1].price) {
+        return `Price of size ${getProductSizeType(sortedPrices[i].productSizeType)} must be less than the price of size ${getProductSizeType(sortedPrices[i + 1].productSizeType)}`;
+      }
+    }
+
+    if (sortedPrices[0].price <= 0) {
+      return 'Price of size S must be greater than 0';
+    }
+
+    return null; // No errors
+  };
+
+  const checkProductNameDuplicate = async () => {
+    try {
+      const response = await axios.get(
+        `https://3.1.81.96/api/Products?categoryId=${updatedProductData.categoryId}&productName=${updatedProductData.productName}`
+      );
+      return response.data.length > 0;
+    } catch (error) {
+      console.error('Error checking product name duplication:', error);
+      return false;
+    }
+  };
+
   const handleUpdateProduct = async () => {
+    const errors = validateProductData();
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      setSnackbarMessage('Please fill in all required fields.');
+      setOpenSnackbar(true);
+      return;
+    }
+
+    // Check for product name duplication
+    const isDuplicate = await checkProductNameDuplicate();
+    if (isDuplicate) {
+      setSnackbarMessage('A product with this name already exists in the selected category.');
+      setOpenSnackbar(true);
+      return;
+    }
+
     try {
       const response = await axios.put(`https://3.1.81.96/api/Products/${updatedProductData.productId}`, updatedProductData);
       if (response.status === 200) {
-        // Update productData in location state (optional, but recommended)
         location.state.productData = response.data;
-        setUpdatedProductData(response.data); // Update local state
+        setUpdatedProductData(response.data);
         setOpenSnackbar(true);
         setSnackbarMessage('Product updated successfully!');
         setIsEditing(false);
+        setValidationErrors({}); // Clear validation errors
       } else {
         console.error('Error updating product:', response);
       }
@@ -100,8 +189,6 @@ const ProductDetails = () => {
   if (!productData) return <p>Product data not found.</p>;
 
   const handleDeleteSizePrice = async (sizePriceId) => {
-    // Implement your delete size price logic here
-    // For example:
     try {
       const response = await axios.delete(`https://3.1.81.96/api/ProductSizePrices/${sizePriceId}`);
       if (response.status === 200) {
@@ -110,11 +197,9 @@ const ProductDetails = () => {
         setSnackbarMessage('Size price deleted successfully!');
       } else {
         console.error('Error deleting size price:', response);
-        // Set error message in snackbar
       }
     } catch (error) {
       console.error('Error deleting size price:', error);
-      // Set error message in snackbar
     }
   };
 
@@ -127,14 +212,23 @@ const ProductDetails = () => {
   };
 
   const handleSaveSizePrice = async () => {
+    const updatedPrices = productSizePrices.map((price) =>
+      price.productSizePriceId === editingSizePrice.productSizePriceId ? { ...price, price: editingSizePrice.price } : price
+    );
+
+    // Validate the updated prices
+    const validationError = validateSizePrices(updatedPrices);
+    if (validationError) {
+      setSnackbarMessage(validationError);
+      setOpenSnackbar(true);
+      return;
+    }
+
     try {
-      const response = await axios.put(
-        `https://3.1.81.96/api/ProductSizePrices/${editingSizePrice.productSizePriceId}`,
-        {
-          productSizeType: editingSizePrice.productSizeType,
-          price: editingSizePrice.price
-        } // Use the correct request body format
-      );
+      const response = await axios.put(`https://3.1.81.96/api/ProductSizePrices/${editingSizePrice.productSizePriceId}`, {
+        productSizeType: editingSizePrice.productSizeType,
+        price: editingSizePrice.price
+      });
 
       if (response.status === 200) {
         setProductSizePrices((prevPrices) =>
@@ -144,32 +238,27 @@ const ProductDetails = () => {
         setSnackbarMessage('Size price updated successfully!');
       } else {
         console.error('Error updating size price:', response);
-        // Set error message in snackbar
       }
     } catch (error) {
       console.error('Error updating size price:', error);
-      // Set error message in snackbar
     } finally {
-      setEditingSizePrice(null); // Exit edit mode
+      setEditingSizePrice(null);
     }
   };
 
   return (
     <MainCard title={<Typography variant="h5">Product Details</Typography>}>
       <Stack spacing={2}>
-        {/* Conditionally render either text or input fields */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Typography variant="subtitle1" sx={{ mr: 1 }}>
-              Product ID:
+              Category Name:
             </Typography>
-            <Typography variant="body1">{productData.productId}</Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography variant="subtitle1" sx={{ mr: 1 }}>
-              Category ID:
+            <Typography variant="body1">
+              {categories[productData.categoryId]
+                ? `${categories[productData.categoryId].name} - ${brands[categories[productData.categoryId].brandId] || 'Unknown Brand'}`
+                : 'Unknown Category'}
             </Typography>
-            <Typography variant="body1">{productData.categoryId || 'Unknown Category'}</Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Typography variant="subtitle1" sx={{ mr: 1 }}>
@@ -186,7 +275,7 @@ const ProductDetails = () => {
           <Button variant="outlined" color="primary" onClick={() => setIsEditing(true)} startIcon={<EditIcon />}>
             Update
           </Button>
-          <Divider sx={{ my: 2 }} /> {/* Add a divider */}
+          <Divider sx={{ my: 2 }} />
           <Typography variant="h6">Size Prices:</Typography>
           <TableContainer component={Paper}>
             <Table aria-label="size prices table">
@@ -199,7 +288,7 @@ const ProductDetails = () => {
               </TableHead>
               <TableBody>
                 {filteredProductSizePrices
-                  .sort((a, b) => a.productSizeType - b.productSizeType) // Sort by size type
+                  .sort((a, b) => a.productSizeType - b.productSizeType)
                   .map((sizePrice) => (
                     <TableRow key={sizePrice.productSizePriceId}>
                       <TableCell>{getProductSizeType(sizePrice.productSizeType)}</TableCell>
@@ -207,17 +296,19 @@ const ProductDetails = () => {
                         {editingSizePrice?.productSizePriceId === sizePrice.productSizePriceId ? (
                           <TextField
                             type="number"
-                            value={editingSizePrice.price} // Use editingSizePrice.price
+                            value={editingSizePrice.price}
                             onChange={(e) => setEditingSizePrice({ ...editingSizePrice, price: e.target.value })}
                             autoFocus
                             onBlur={handleSaveSizePrice}
+                            error={editingSizePrice.price === ''}
+                            helpertext={editingSizePrice.price === '' ? 'Price is required' : ''}
                           />
                         ) : (
                           `$${sizePrice.price}`
                         )}
                       </TableCell>
                       <TableCell align="center">
-                        {editingSizePrice?.productSizePriceId === sizePrice.productSizePriceId ? ( // Check if editingSizePrice exists
+                        {editingSizePrice?.productSizePriceId === sizePrice.productSizePriceId ? (
                           <IconButton onClick={handleCancelEdit} color="primary">
                             <CloseIcon />
                           </IconButton>
@@ -238,27 +329,36 @@ const ProductDetails = () => {
           {!isEditing && filteredProductSizePrices.length === 0 && <p>No size prices found</p>}
         </Box>
 
-        {/* Update and Cancel buttons */}
-        {/* Update Dialog */}
         <Dialog open={isEditing} onClose={() => setIsEditing(false)}>
           <DialogTitle>Update Product</DialogTitle>
           <DialogContent>
             <DialogContentText>Make changes to the product details:</DialogContentText>
-            <TextField
-              label="Category ID"
-              name="categoryID"
-              value={updatedProductData.categoryId}
+            <InputLabel error={Boolean(validationErrors.categoryId)}>Category</InputLabel>
+            <Select
+              label="Category"
+              name="categoryId"
+              value={updatedProductData.categoryId || ''}
               onChange={handleChange}
               fullWidth
-              margin="normal"
-            />
+              margin="dense"
+              error={Boolean(validationErrors.categoryId)}
+              helpertext={validationErrors.categoryId}
+            >
+              {Object.entries(categories).map(([id, { name, brandId }]) => (
+                <MenuItem key={id} value={id}>
+                  {name} - {brands[brandId] || 'Unknown Brand'}
+                </MenuItem>
+              ))}
+            </Select>
             <TextField
               label="Product Name"
               name="productName"
               value={updatedProductData.productName}
               onChange={handleChange}
               fullWidth
-              margin="normal"
+              margin="dense"
+              error={Boolean(validationErrors.productName)}
+              helpertext={validationErrors.productName}
             />
             <TextField
               label="Product Description"
@@ -266,7 +366,9 @@ const ProductDetails = () => {
               value={updatedProductData.productDescription}
               onChange={handleChange}
               fullWidth
-              margin="normal"
+              margin="dense"
+              error={Boolean(validationErrors.productDescription)}
+              helpertext={validationErrors.productDescription}
             />
           </DialogContent>
           <DialogActions>
@@ -281,11 +383,11 @@ const ProductDetails = () => {
       </Stack>
       <Snackbar
         open={openSnackbar}
-        autoHideDuration={6000}
+        autoHideDuration={3000}
         onClose={() => setOpenSnackbar(false)}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
-        <Alert severity={snackbarMessage ? 'success' : 'error'}>{snackbarMessage}</Alert>
+        <Alert severity={snackbarMessage.includes('successfully') ? 'success' : 'error'}>{snackbarMessage}</Alert>
       </Snackbar>
     </MainCard>
   );

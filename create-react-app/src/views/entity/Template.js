@@ -24,10 +24,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogContentText,
-  DialogActions,
-  Select,
-  InputLabel,
-  FormControl
+  DialogActions
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { AddCircleOutlined, Delete } from '@mui/icons-material';
@@ -53,8 +50,34 @@ const EntityTemplate = () => {
     templateOrientation: 'vertical',
     templateImgPath: ''
   });
+  const [validationErrors, setValidationErrors] = useState({});
+
+  const validateNewTemplateData = () => {
+    const errors = {};
+    if (!newTemplateData.brandId) {
+      errors.brandId = 'Brand is required';
+    }
+    if (!newTemplateData.templateName.trim()) {
+      errors.templateName = 'Template name is required';
+    }
+    if (!newTemplateData.templateDescription.trim()) {
+      errors.templateDescription = 'Template description is required';
+    }
+    if (!newTemplateData.templateOrientation) {
+      errors.templateOrientation = 'Template orientation is required';
+    }
+    if (!newTemplateData.templateImgPath.trim()) {
+      errors.templateImgPath = 'Template image path is required';
+    }
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleAddTemplate = async () => {
+    if (!validateNewTemplateData()) {
+      return;
+    }
+
     try {
       const response = await axios.post('https://3.1.81.96/api/Templates', newTemplateData);
       if (response.status === 201) {
@@ -91,10 +114,16 @@ const EntityTemplate = () => {
     } else {
       setNewTemplateData((prevState) => ({ ...prevState, [name]: value }));
     }
+
+    setValidationErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: '' // Clear error for the field being updated
+    }));
   };
 
   const handleCloseAddTemplateDialog = () => {
     setShowAddTemplateDialog(false);
+    setValidationErrors({});
   };
 
   const handleViewDetails = (template) => {
@@ -271,33 +300,42 @@ const EntityTemplate = () => {
         <DialogTitle>Add New Template</DialogTitle>
         <DialogContent>
           <DialogContentText>Please enter the details of the new template.</DialogContentText>
-          {/* Input fields for template data */}
-          <FormControl fullWidth variant="standard" sx={{ mt: 2 }}>
-            <InputLabel id="brand-select-label">Brand Name</InputLabel>
-            <Select
-              labelId="brand-select-label"
-              id="brand-select"
-              name="brandId"
-              value={newTemplateData.brandId}
-              onChange={handleAddTemplateChange}
-              label="Brand Name"
-            >
-              {brandData.map((brand) => (
-                <MenuItem key={brand.brandId} value={brand.brandId}>
-                  {brand.brandName}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="brand-select"
+            name="brandId"
+            type="text"
+            label="Brand Name"
+            fullWidth
+            variant="outlined"
+            value={newTemplateData.brandId}
+            onChange={handleAddTemplateChange}
+            select
+            SelectProps={{ native: true }}
+            required
+            error={!!validationErrors.brandId}
+            helperText={validationErrors.brandId}
+          >
+            <option value="" disabled></option>
+            {brandData.map((brand) => (
+              <option key={brand.brandId} value={brand.brandId}>
+                {brand.brandName}
+              </option>
+            ))}
+          </TextField>
           <TextField
             margin="dense"
             name="templateName"
             label="Template Name"
             type="text"
             fullWidth
-            variant="standard"
+            variant="outlined"
             value={newTemplateData.templateName}
             onChange={handleAddTemplateChange}
+            required
+            error={!!validationErrors.templateName}
+            helperText={validationErrors.templateName}
           />
           <TextField
             margin="dense"
@@ -305,33 +343,46 @@ const EntityTemplate = () => {
             label="Template Description"
             type="text"
             fullWidth
-            variant="standard"
+            variant="outlined"
             value={newTemplateData.templateDescription}
             onChange={handleAddTemplateChange}
+            required
+            error={!!validationErrors.templateDescription}
+            helperText={validationErrors.templateDescription}
           />
-          <FormControl fullWidth variant="standard" sx={{ mt: 2 }}>
-            <InputLabel id="orientation-select-label">Orientation</InputLabel>
-            <Select
-              labelId="orientation-select-label"
-              id="orientation-select"
-              name="templateOrientation"
-              value={newTemplateData.templateOrientation}
-              onChange={handleAddTemplateChange}
-              label="Orientation"
-            >
-              <MenuItem value="vertical">Vertical (900 x 1600)</MenuItem>
-              <MenuItem value="horizontal">Horizontal (1600 x 900)</MenuItem>
-            </Select>
-          </FormControl>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="orientation-select"
+            name="templateOrientation"
+            type="text"
+            label="Orientation"
+            fullWidth
+            variant="outlined"
+            value={newTemplateData.templateOrientation}
+            onChange={handleAddTemplateChange}
+            select
+            SelectProps={{ native: true }}
+            required
+            error={!!validationErrors.templateOrientation}
+            helperText={validationErrors.templateOrientation}
+          >
+            <option value="" disabled></option>
+            <option value="vertical">Vertical (900 x 1600)</option>
+            <option value="horizontal">Horizontal (1600 x 900)</option>
+          </TextField>
           <TextField
             margin="dense"
             name="templateImgPath"
             label="Template Image Path"
             type="text"
             fullWidth
-            variant="standard"
+            variant="outlined"
             value={newTemplateData.templateImgPath}
             onChange={handleAddTemplateChange}
+            required
+            error={!!validationErrors.templateImgPath}
+            helperText={validationErrors.templateImgPath}
           />
         </DialogContent>
         <DialogActions>

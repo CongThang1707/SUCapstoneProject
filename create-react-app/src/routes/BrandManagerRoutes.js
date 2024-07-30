@@ -6,17 +6,17 @@ import Loadable from 'ui-component/Loadable';
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')));
 // utilities routing
-const UtilsTypography = Loadable(lazy(() => import('views/utilities/Typography')));
+const UtilsTypography = Loadable(lazy(() => import('views/utilities/User')));
 const UtilsMaterialIcons = Loadable(lazy(() => import('views/utilities/MaterialIcons')));
 const UtilsTablerIcons = Loadable(lazy(() => import('views/utilities/TablerIcons')));
-const UtilsMyBrand = Loadable(lazy(() => import('views/utilities/MyBrand')));
-const UtilsMyProduct = Loadable(lazy(() => import('views/utilities/MyProduct')));
-const UtilsMyCategory = Loadable(lazy(() => import('views/utilities/MyCategory')));
-const UtilsMyCollection = Loadable(lazy(() => import('views/utilities/MyCollection')));
-const UtilsMyMenu = Loadable(lazy(() => import('views/utilities/MyMenu')));
-const UtilsMyTemplate = Loadable(lazy(() => import('views/utilities/MyTemplate')));
-const UtilsMyStore = Loadable(lazy(() => import('views/utilities/MyStore')));
-const UtilsProduct = Loadable(lazy(() => import('views/utilities/MyProduct')));
+
+const UtilsMyBrand = Loadable(lazy(() => import('views/brandmanagerutilities/MyBrand')));
+const UtilsMyProduct = Loadable(lazy(() => import('views/brandmanagerutilities/MyProduct')));
+const UtilsMyCategory = Loadable(lazy(() => import('views/brandmanagerutilities/MyCategory')));
+const UtilsMyCollection = Loadable(lazy(() => import('views/brandmanagerentities/MyCollection')));
+const UtilsMyMenu = Loadable(lazy(() => import('views/brandmanagerentities/MyMenu')));
+const UtilsMyTemplate = Loadable(lazy(() => import('views/brandmanagerentities/MyTemplate')));
+const UtilsMyStore = Loadable(lazy(() => import('views/brandmanagerutilities/MyStore')));
 // sample entities routing
 const EntityTemplate = Loadable(lazy(() => import('views/entity/Template')));
 const EntityMenu = Loadable(lazy(() => import('views/entity/Menu')));
@@ -29,7 +29,6 @@ const MyMenuDetails = Loadable(lazy(() => import('views/sample-page/MyMenuDetail
 const MyProductDetails = Loadable(lazy(() => import('views/sample-page/MyProductDetails')));
 const MyCollectionDetails = Loadable(lazy(() => import('views/sample-page/MyCollectionDetails')));
 
-// ==============================|| MAIN ROUTING ||============================== //
 
 const BrandManagerRoutes = {
   path: '/',
@@ -116,16 +115,7 @@ const BrandManagerRoutes = {
       children: [
         {
           path: 'util-mystore',
-          element: <UtilsMyStore/>
-        }
-      ]
-    },
-    {
-      path: 'utils',
-      children: [
-        {
-          path: 'util-product',
-          element: <UtilsProduct />
+          element: <UtilsMyStore />
         }
       ]
     },

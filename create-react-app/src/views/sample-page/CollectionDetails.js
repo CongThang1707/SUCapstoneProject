@@ -61,6 +61,33 @@ const CollectionDetail = () => {
   });
   const [showDeleteItemConfirmation, setShowDeleteItemConfirmation] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+  const [productGroups, setProductGroups] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [validationErrors, setValidationErrors] = useState({});
+
+  const validateNewProductGroupData = () => {
+    const errors = {};
+    if (!newProductGroupData.productGroupName.trim()) {
+      errors.productGroupName = 'Product group name is required';
+    }
+    if (!newProductGroupData.productGroupMaxCapacity.trim()) {
+      errors.productGroupMaxCapacity = 'Product group max capacity is required';
+    }
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const validateNewProductGroupItemData = () => {
+    const errors = {};
+    if (!newProductGroupItemData.productGroupId) {
+      errors.productGroupId = 'Product group name is required';
+    }
+    if (!newProductGroupItemData.productId) {
+      errors.productId = 'Product is required';
+    }
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleDeleteProductGroupItem = (itemId) => {
     // Set the item to delete and open the confirmation dialog
@@ -98,9 +125,13 @@ const CollectionDetail = () => {
   const handleAddProductGroupItemChange = (event) => {
     const { name, value } = event.target;
     setNewProductGroupItemData((prevState) => ({ ...prevState, [name]: value }));
+    setValidationErrors((prevErrors) => ({ ...prevErrors, [name]: '' }));
   };
 
   const handleSaveAddProductGroupItem = async () => {
+    if (!validateNewProductGroupItemData()) {
+      return;
+    }
     try {
       const dataToSend = {
         productGroupId: parseInt(newProductGroupItemData.productGroupId, 10),
@@ -237,9 +268,16 @@ const CollectionDetail = () => {
       ...prevState,
       [name]: name === 'haveNormalPrice' ? checked : value // Update boolean for Switch
     }));
+    setValidationErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: '' // Clear error for the field being updated
+    }));
   };
 
   const handleAddProductGroup = async () => {
+    if (!validateNewProductGroupData()) {
+      return;
+    }
     try {
       const dataToSend = {
         menuId: null,
@@ -274,6 +312,20 @@ const CollectionDetail = () => {
   };
 
   useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get('https://3.1.81.96/api/Products?pageNumber=1&pageSize=100'); // Replace with your API endpoint
+        setProducts(response.data); // Assuming response.data is an array of products
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        setError('An error occurred while fetching products.');
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       setError(null);
@@ -282,6 +334,7 @@ const CollectionDetail = () => {
         const productGroupResponse = await axios.get(
           `https://3.1.81.96/api/ProductGroup/GroupItem?collectionId=${collectionData.collectionId}`
         );
+        setProductGroups(productGroupResponse.data);
         const productGroupItems = productGroupResponse.data;
         const productIds =
           collectionData.productGroups && collectionData.productGroups.length > 0
@@ -458,30 +511,61 @@ const CollectionDetail = () => {
             <TextField
               autoFocus
               margin="dense"
-              id="productGroupId" // Add this TextField for productGroupId
-              label="Product Group ID"
-              type="number"
-              fullWidth
-              variant="standard"
+              id="product-group-select-label" // Add this TextField for productGroupId
               name="productGroupId"
+              type="text"
+              label="Product Group"
+              fullWidth
+              variant="outlined"
               value={newProductGroupItemData.productGroupId}
               onChange={handleAddProductGroupItemChange}
-            />
+              select
+              SelectProps={{ native: true }}
+              error={!!validationErrors.productGroupId}
+              helperText={validationErrors.productGroupId}
+              required
+            >
+              <option value="" disabled></option>
+              {productGroups.map((group) => (
+                <option key={group.productGroupId} value={group.productGroupId}>
+                  {group.productGroupName}
+                </option>
+              ))}
+            </TextField>
             <TextField
               autoFocus
               margin="dense"
-              id="productId"
-              label="Product ID"
-              type="number"
-              fullWidth
-              variant="standard"
+              id="product-select-label"
               name="productId"
+              type="text"
+              label="Product"
+              fullWidth
+              variant="outlined"
               value={newProductGroupItemData.productId}
               onChange={handleAddProductGroupItemChange}
-            />
+              select
+              SelectProps={{ native: true }}
+              error={!!validationErrors.productId}
+              helperText={validationErrors.productId}
+              required
+            >
+              <option value="" disabled></option>
+              {products.map((product) => (
+                <option key={product.productId} value={product.productId}>
+                  {product.productName}
+                </option>
+              ))}
+            </TextField>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setShowAddProductGroupItemDialog(false)}>Cancel</Button>
+            <Button
+              onClick={() => {
+                setShowAddProductGroupItemDialog(false);
+                setValidationErrors({});
+              }}
+            >
+              Cancel
+            </Button>
             <Button onClick={handleSaveAddProductGroupItem} variant="contained">
               Add
             </Button>
@@ -499,10 +583,13 @@ const CollectionDetail = () => {
             label="Product Group Name"
             type="text"
             fullWidth
-            variant="standard"
+            variant="outlined"
             name="productGroupName" // Add name attribute to bind to state
             value={newProductGroupData.productGroupName} // Bind to newProductGroupData
             onChange={handleAddProductGroupChange}
+            required
+            error={!!validationErrors.productGroupName}
+            helperText={validationErrors.productGroupName}
           />
           <TextField
             margin="dense"
@@ -510,10 +597,13 @@ const CollectionDetail = () => {
             label="Max Capacity"
             type="number"
             fullWidth
-            variant="standard"
+            variant="outlined"
             name="productGroupMaxCapacity" // Add name attribute to bind to state
             value={newProductGroupData.productGroupMaxCapacity} // Bind to newProductGroupData
             onChange={handleAddProductGroupChange}
+            required
+            error={!!validationErrors.productGroupMaxCapacity}
+            helperText={validationErrors.productGroupMaxCapacity}
           />
           <FormGroup>
             <FormControlLabel
@@ -529,7 +619,14 @@ const CollectionDetail = () => {
           </FormGroup>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowAddProductGroupDialog(false)}>Cancel</Button>
+          <Button
+            onClick={() => {
+              setShowAddProductGroupDialog(false);
+              setValidationErrors({});
+            }}
+          >
+            Cancel
+          </Button>
           <Button onClick={handleAddProductGroup} variant="contained">
             Add Product Group
           </Button>

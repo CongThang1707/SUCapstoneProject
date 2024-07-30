@@ -1,109 +1,255 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import MainCard from 'ui-component/cards/MainCard';
 import axios from 'axios';
-import { TextField, Button, Snackbar, Alert } from '@mui/material';
+import {
+  TextField,
+  Button,
+  Switch,
+  FormControlLabel,
+  Grid,
+  Box,
+  Typography,
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
+} from '@mui/material';
+import Toastify from 'toastify-js';
+import 'toastify-js/src/toastify.css';
 
 const StoreDetails = () => {
   const location = useLocation();
-  const { storeData } = location.state || {};
+  const { storeId } = location.state;
+  const navigate = useNavigate();
+  const [storeData, setStoreData] = useState(null);
+  const [editingStoreData, setEditingStoreData] = useState({});
+  const [brandName, setBrandName] = useState('');
+  const [validationErrors, setValidationErrors] = useState({});
+  const [openEditDialog, setOpenEditDialog] = useState(false);
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [updatedStoreData, setUpdatedStoreData] = useState(storeData || {});
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const validateUpdatedStoreData = () => {
+    const errors = {};
+    if (!editingStoreData.storeName.trim()) {
+      errors.storeName = 'Store name is required';
+    }
+    if (!editingStoreData.storeLocation.trim()) {
+      errors.storeLocation = 'Store location is required';
+    }
+    if (!editingStoreData.storeContactEmail.trim()) {
+      errors.storeContactEmail = 'Store contact email is required';
+    }
+    if (!editingStoreData.storeContactNumber.trim()) {
+      errors.storeContactNumber = 'Store contact number is required';
+    }
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   useEffect(() => {
-    // Update local state when storeData changes (after a successful update)
-    setUpdatedStoreData(storeData);
-  }, [storeData]);
+    const fetchStoreDetails = async () => {
+      try {
+        const storeResponse = await axios.get(`https://3.1.81.96/api/Stores?storeId=${storeId}`);
+        const storeDetails = storeResponse.data[0];
+
+        const brandResponse = await axios.get(`https://3.1.81.96/api/Brands?brandId=${storeDetails.brandId}`);
+        const brandName = brandResponse.data.length > 0 ? brandResponse.data[0].brandName : 'Unknown Brand';
+
+        setStoreData(storeDetails);
+        setEditingStoreData(storeDetails);
+        setBrandName(brandName);
+      } catch (error) {
+        console.error('Error fetching store details:', error);
+        Toastify({
+          text: `Error: ${error.message}`,
+          duration: 3000,
+          close: true,
+          gravity: 'top',
+          position: 'right',
+          backgroundColor: 'linear-gradient(to right, #ff0000, #ff6347)'
+        }).showToast();
+      }
+    };
+
+    fetchStoreDetails();
+  }, [storeId]);
+
   const handleChange = (event) => {
-    const { name, value } = event.target;
-    setUpdatedStoreData((prevData) => ({ ...prevData, [name]: value }));
+    const { name, value, type, checked } = event.target;
+    const newValue = type === 'checkbox' ? checked : value;
+    setEditingStoreData((prevData) => ({ ...prevData, [name]: newValue }));
+    setValidationErrors((prevErrors) => ({ ...prevErrors, [name]: '' }));
   };
 
   const handleUpdateStore = async () => {
+    if (!validateUpdatedStoreData()) {
+      return;
+    }
     try {
-      const response = await axios.put(`https://3.1.81.96/api/Stores?storeId=${updatedStoreData.storeID}`, updatedStoreData);
+      const response = await axios.put(`https://3.1.81.96/api/Stores/${editingStoreData.storeId}`, editingStoreData);
+
       if (response.status === 200) {
-        // Update storeData in location state (optional, but recommended)
-        location.state.storeData = response.data;
-        setUpdatedStoreData(response.data); // Update local state
-        setOpenSnackbar(true);
-        setSnackbarMessage('Store updated successfully!');
-        setIsEditing(false);
+        setStoreData(editingStoreData); // Update display state only after successful save
+        Toastify({
+          text: 'Store updated successfully!',
+          duration: 3000,
+          close: true,
+          gravity: 'top',
+          position: 'right',
+          backgroundColor: 'linear-gradient(to right, #00b09b, #96c93d)'
+        }).showToast();
+        setOpenEditDialog(false);
       } else {
         console.error('Error updating store:', response);
       }
     } catch (error) {
       console.error('Error updating store:', error);
+      Toastify({
+        text: `Error: ${error.message}`,
+        duration: 3000,
+        close: true,
+        gravity: 'top',
+        position: 'right',
+        backgroundColor: 'linear-gradient(to right, #ff0000, #ff6347)'
+      }).showToast();
     }
   };
 
-  if (!storeData) return <p>Store data not found.</p>;
+  if (!storeData)
+    return (
+      <Typography variant="h6" color="textSecondary" sx={{ textAlign: 'center' }}>
+        <CircularProgress />
+      </Typography>
+    );
 
   return (
     <MainCard title="Store Details">
-      <div>
-        {/* Conditionally render either text or input fields */}
-        {!isEditing ? (
-          <>
-            <p>Store ID: {storeData.storeID}</p>
-            <p>Brand ID: {storeData.brandID}</p>
-            <p>Brand Name: {storeData.brandName}</p>
-            <p>Location: {storeData.storeLocation}</p>
-            <p>Contact Email: {storeData.storeContactEmail}</p>
-            <p>Contact Number: {storeData.storeContactNumber}</p>
-          </>
-        ) : (
-          <>
-            <TextField
-              label="Location"
-              name="storeLocation"
-              value={updatedStoreData.storeLocation}
-              onChange={handleChange}
-              fullWidth
-              margin="normal"
-            />
-            <TextField
-              label="Contact Email"
-              name="storeContactEmail"
-              value={updatedStoreData.storeContactEmail}
-              onChange={handleChange}
-              fullWidth
-              margin="normal"
-            />
-            <TextField
-              label="Contact Number"
-              name="storeContactNumber"
-              value={updatedStoreData.storeContactNumber}
-              onChange={handleChange}
-              fullWidth
-              margin="normal"
-            />
-          </>
-        )}
+      <Box p={3}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <Typography variant="h6">Brand Name:</Typography>
+            <Typography variant="body1">{brandName}</Typography>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Typography variant="h6">Store Code:</Typography>
+            <Typography variant="body1">{storeData.storeCode}</Typography>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Typography variant="h6">Store Name:</Typography>
+            <Typography variant="body1">{storeData.storeName}</Typography>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Typography variant="h6">Location:</Typography>
+            <Typography variant="body1">{storeData.storeLocation}</Typography>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Typography variant="h6">Contact Email:</Typography>
+            <Typography variant="body1">{storeData.storeContactEmail}</Typography>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Typography variant="h6">Contact Number:</Typography>
+            <Typography variant="body1">{storeData.storeContactNumber}</Typography>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Typography variant="h6">Status:</Typography>
+            <Typography variant="body1">{storeData.storeStatus ? 'True' : 'False'}</Typography>
+          </Grid>
+        </Grid>
 
-        {/* Update and Cancel buttons */}
-        <Button variant="contained" color="primary" onClick={() => setIsEditing(!isEditing)}>
-          {isEditing ? 'Cancel' : 'Update'}
-        </Button>
-
-        {isEditing && (
-          <Button variant="contained" color="success" onClick={handleUpdateStore}>
-            Save Changes
+        <Box mt={2} display="flex" justifyContent="space-between">
+          <Button variant="contained" color="secondary" onClick={() => navigate(-1)}>
+            Back
           </Button>
-        )}
-      </div>
+          <Button variant="contained" color="primary" onClick={() => setOpenEditDialog(true)}>
+            Edit
+          </Button>
+        </Box>
 
-      <Snackbar
-        open={openSnackbar}
-        autoHideDuration={6000}
-        onClose={() => setOpenSnackbar(false)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert severity={snackbarMessage ? 'success' : 'error'}>{snackbarMessage}</Alert>
-      </Snackbar>
+        <Dialog open={openEditDialog} onClose={() => setOpenEditDialog(false)}>
+          <DialogTitle>Edit Store Details</DialogTitle>
+          <DialogContent>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="Store Name"
+                  name="storeName"
+                  value={editingStoreData.storeName}
+                  onChange={handleChange}
+                  fullWidth
+                  margin="normal"
+                  variant="outlined"
+                  required
+                  error={!!validationErrors.storeName}
+                  helperText={validationErrors.storeName}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="Location"
+                  name="storeLocation"
+                  value={editingStoreData.storeLocation}
+                  onChange={handleChange}
+                  fullWidth
+                  margin="normal"
+                  variant="outlined"
+                  required
+                  error={!!validationErrors.storeLocation}
+                  helperText={validationErrors.storeLocation}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="Contact Email"
+                  name="storeContactEmail"
+                  value={editingStoreData.storeContactEmail}
+                  onChange={handleChange}
+                  fullWidth
+                  margin="normal"
+                  variant="outlined"
+                  required
+                  error={!!validationErrors.storeContactEmail}
+                  helperText={validationErrors.storeContactEmail}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="Contact Number"
+                  name="storeContactNumber"
+                  value={editingStoreData.storeContactNumber}
+                  onChange={handleChange}
+                  fullWidth
+                  margin="normal"
+                  variant="outlined"
+                  required
+                  error={!!validationErrors.storeContactNumber}
+                  helperText={validationErrors.storeContactNumber}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControlLabel
+                  control={<Switch checked={editingStoreData.storeStatus} onChange={handleChange} name="storeStatus" color="primary" />}
+                  label="Status"
+                  labelPlacement="start"
+                />
+              </Grid>
+            </Grid>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => {
+                setOpenEditDialog(false);
+                setValidationErrors({});
+              }}
+            >
+              Cancel
+            </Button>
+            <Button variant="contained" color="success" onClick={handleUpdateStore}>
+              Save Changes
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
     </MainCard>
   );
 };
