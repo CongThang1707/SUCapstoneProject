@@ -4,6 +4,7 @@
   "private": true,
   "homepage": "https://berrydashboard.io/free",
   "dependencies": {
+    "16": "^0.0.2",
     "@cloudinary/react": "^1.13.0",
     "@cloudinary/url-gen": "^1.19.0",
     "@emotion/cache": "^11.11.0",
