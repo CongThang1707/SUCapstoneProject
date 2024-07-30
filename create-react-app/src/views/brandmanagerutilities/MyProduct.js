@@ -1,18 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  CircularProgress,
-  Box,
-  Button
-} from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, Box, Button } from '@mui/material';
 import { Edit, Delete } from '@mui/icons-material';
 
 const MyProduct = () => {
@@ -53,7 +42,7 @@ const MyProduct = () => {
 
       fetchProducts();
     }
-  }, [categoryId]); 
+  }, [categoryId]);
 
   return (
     <Box sx={{ flexGrow: 1, p: 3 }}>

@@ -23,7 +23,7 @@ const Dashboard = () => {
     setLoading(false);
     console.log('Token data: ', token);
     console.log('userId: ', userId);
-  }, []);
+  }, [token, userId]);
 
   return (
     <Grid container spacing={gridSpacing}>

@@ -56,12 +56,12 @@ const MyCollection = () => {
     try {
       // Retrieve brandId from localStorage
       const brandId = localStorage.getItem('brandId');
-  
+
       const response = await axios.post('https://3.1.81.96/api/Collections', {
         ...newCollectionData,
         brandId: brandId // Set brandId fetched from localStorage
       });
-  
+
       if (response.status === 201) {
         // Successfully created new collection
         setNewCollectionData({
@@ -88,12 +88,12 @@ const MyCollection = () => {
     try {
       // Retrieve brandId from localStorage
       const brandId = localStorage.getItem('brandId');
-  
+
       const response = await axios.put(`https://3.1.81.96/api/Collections/${editCollectionData.collectionId}`, {
         ...editCollectionData,
         brandId: brandId // Ensure brandId is included in the update payload
       });
-  
+
       if (response.status === 200) {
         // Successfully updated collection
         setShowEditCollectionDialog(false);
@@ -140,7 +140,7 @@ const MyCollection = () => {
     try {
       // Retrieve brandId from localStorage
       const brandId = localStorage.getItem('brandId');
-  
+
       const response = await axios.get('https://3.1.81.96/api/Collections', {
         params: {
           brandId: brandId,
@@ -148,7 +148,7 @@ const MyCollection = () => {
           pageSize: 100
         }
       });
-  
+
       if (!response.data) {
         throw new Error('Missing data from API response');
       }
