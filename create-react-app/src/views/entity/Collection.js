@@ -22,10 +22,7 @@ import {
   IconButton,
   Menu,
   ListItemIcon,
-  ListItemText,
-  Select,
-  InputLabel,
-  FormControl
+  ListItemText
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { AddCircleOutlined, Edit, Delete } from '@mui/icons-material';
@@ -55,6 +52,22 @@ const EntityCollection = () => {
   const [showEditCollectionDialog, setShowEditCollectionDialog] = useState(false);
   const [editingCollection, setEditingCollection] = useState(null);
   const filteredCollections = collectionData.filter((collection) => collection.collectionName.toLowerCase().includes(filter.toLowerCase()));
+  const [validationErrors, setValidationErrors] = useState({});
+
+  const validateNewCollectionData = () => {
+    const errors = {};
+    if (!newCollectionData.brandId) {
+      errors.brandId = 'Brand is required';
+    }
+    if (!newCollectionData.collectionName.trim()) {
+      errors.collectionName = 'Collection name is required';
+    }
+    if (!newCollectionData.collectionDescription.trim()) {
+      errors.collectionDescription = 'Collection description is required';
+    }
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleEditCollection = (collection) => {
     setEditingCollection(collection);
@@ -98,13 +111,20 @@ const EntityCollection = () => {
 
   const handleAddCollectionChange = (event) => {
     const { name, value } = event.target;
-    setNewCollectionData((prevData) => ({
-      ...prevData,
+    setNewCollectionData((prevState) => ({
+      ...prevState,
       [name]: value
+    }));
+    setValidationErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: ''
     }));
   };
 
   const handleAddCollection = async () => {
+    if (!validateNewCollectionData()) {
+      return;
+    }
     try {
       const response = await axios.post('https://3.1.81.96/api/Collections', newCollectionData);
       if (response.status === 201) {
@@ -126,6 +146,7 @@ const EntityCollection = () => {
 
   const handleCloseAddCollectionDialog = () => {
     setShowAddCollectionDialog(false);
+    setValidationErrors({});
   };
 
   useEffect(() => {
@@ -308,31 +329,42 @@ const EntityCollection = () => {
               <DialogTitle>Add New Collection</DialogTitle>
               <DialogContent>
                 <DialogContentText>Please enter the details of the new collection.</DialogContentText>
-                <FormControl fullWidth variant="standard" sx={{ mb: 2 }}>
-                  <InputLabel id="brand-select-label">Collection Name</InputLabel>
-                  <Select
-                    labelId="brand-select-label"
-                    id="brand-select"
-                    value={newCollectionData.brandId}
-                    onChange={handleAddCollectionChange}
-                    label="Brand Name"
-                  >
-                    {brandData.map((brand) => (
-                      <MenuItem key={brand.brandId} value={brand.brandId}>
-                        {brand.brandName}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <TextField
+                  autoFocus
+                  margin="dense"
+                  id="brand-select"
+                  name="brandId"
+                  type="text"
+                  label="Brand Name"
+                  fullWidth
+                  variant="outlined"
+                  value={newCollectionData.brandId}
+                  onChange={handleAddCollectionChange}
+                  select
+                  SelectProps={{ native: true }}
+                  required
+                  error={!!validationErrors.brandId}
+                  helperText={validationErrors.brandId}
+                >
+                  <option value="" disabled></option>
+                  {brandData.map((brand) => (
+                    <option key={brand.brandId} value={brand.brandId}>
+                      {brand.brandName}
+                    </option>
+                  ))}
+                </TextField>
                 <TextField
                   margin="dense"
                   name="collectionName"
                   label="Collection Name"
                   type="text"
                   fullWidth
-                  variant="standard"
+                  variant="outlined"
                   value={newCollectionData.collectionName}
                   onChange={handleAddCollectionChange}
+                  required
+                  error={!!validationErrors.collectionName}
+                  helperText={validationErrors.collectionName}
                 />
                 <TextField
                   margin="dense"
@@ -340,9 +372,12 @@ const EntityCollection = () => {
                   label="Collection Description"
                   type="text"
                   fullWidth
-                  variant="standard"
+                  variant="outlined"
                   value={newCollectionData.collectionDescription}
                   onChange={handleAddCollectionChange}
+                  required
+                  error={!!validationErrors.collectionDescription}
+                  helperText={validationErrors.collectionDescription}
                 />
               </DialogContent>
               <DialogActions>

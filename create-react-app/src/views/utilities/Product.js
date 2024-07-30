@@ -43,19 +43,45 @@ const UtilitiesProduct = () => {
   });
   const [filter, setFilter] = useState('');
   const [categoryMap, setCategoryMap] = useState({});
+  const [categoryOptions, setCategoryOptions] = useState([]);
+  const [validationErrors, setValidationErrors] = useState({});
+  const [productsByCategory, setProductsByCategory] = useState({});
+
+  // Function to validate new product data
+  const validateNewProductData = () => {
+    const errors = {};
+    if (!newProductData.categoryId) {
+      errors.categoryId = 'Category is required';
+    }
+    if (!newProductData.productName.trim()) {
+      errors.productName = 'Product name is required';
+    }
+    if (!newProductData.productDescription.trim()) {
+      errors.productDescription = 'Product description is required';
+    }
+
+    // Check for duplicate product in the selected category
+    const categoryProducts = productsByCategory[newProductData.categoryId] || [];
+    const duplicateProduct = categoryProducts.find((product) => product.productName === newProductData.productName);
+
+    if (duplicateProduct) {
+      errors.productName = 'A product with this name already exists in the selected category.';
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleAddProduct = async () => {
+    if (!validateNewProductData()) {
+      return; // Stop if validation fails
+    }
+
     try {
       const response = await axios.post('https://3.1.81.96/api/Products', newProductData);
       if (response.status === 201) {
         // Successfully created new product
-        setNewProductData({
-          brandID: '',
-          categoryID: '',
-          productName: '',
-          productDescription: ''
-        });
-        setShowAddProductDialog(false);
+        setError(null);
 
         // Fetch updated product and category data
         const [updatedProductResponse, categoryResponse] = await Promise.all([
@@ -73,6 +99,22 @@ const UtilitiesProduct = () => {
         }));
 
         setProductData(updatedProductData);
+
+        // Update productsByCategory for new validation
+        const updatedProductsByCategory = updatedProductData.reduce((acc, product) => {
+          if (!acc[product.categoryId]) acc[product.categoryId] = [];
+          acc[product.categoryId].push(product);
+          return acc;
+        }, {});
+
+        setProductsByCategory(updatedProductsByCategory);
+
+        setNewProductData({
+          categoryId: '',
+          productName: '',
+          productDescription: ''
+        });
+        setShowAddProductDialog(false);
 
         setOpenSnackbar(true);
         setSnackbarMessage('Product added successfully!');
@@ -95,6 +137,7 @@ const UtilitiesProduct = () => {
 
   const handleCloseAddProductDialog = () => {
     setShowAddProductDialog(false);
+    setValidationErrors({});
   };
 
   useEffect(() => {
@@ -103,14 +146,24 @@ const UtilitiesProduct = () => {
       setError(null);
 
       try {
-        const [productResponse, categoryResponse] = await Promise.all([
+        const [productResponse, categoryResponse, brandResponse] = await Promise.all([
           axios.get('https://3.1.81.96/api/Products?pageNumber=1&pageSize=100'),
-          axios.get('https://3.1.81.96/api/Categories?pageNumber=1&pageSize=100')
+          axios.get('https://3.1.81.96/api/Categories?pageNumber=1&pageSize=100'),
+          axios.get('https://3.1.81.96/api/Brands?pageNumber=1&pageSize=100') // Assuming you have an endpoint for brands
         ]);
 
-        if (!productResponse.data || !categoryResponse.data) {
+        if (!productResponse.data || !categoryResponse.data || !brandResponse.data) {
           throw new Error('Missing data from API response');
         }
+
+        const categoryOptions = categoryResponse.data.map((category) => {
+          const brand = brandResponse.data.find((b) => b.brandId === category.brandId); // Adjust property names accordingly
+          return {
+            id: category.categoryId,
+            name: `${category.categoryName} - ${brand ? brand.brandName : 'Unknown Brand'}`
+          };
+        });
+        setCategoryOptions(categoryOptions);
 
         // Create a map of categoryId to categoryName (correct property name)
         const categoryMap = {};
@@ -119,6 +172,14 @@ const UtilitiesProduct = () => {
         });
         setCategoryMap(categoryMap);
 
+        // Create a map of categoryId to products
+        const productsByCategory = productResponse.data.reduce((acc, product) => {
+          if (!acc[product.categoryId]) acc[product.categoryId] = [];
+          acc[product.categoryId].push(product);
+          return acc;
+        }, {});
+
+        setProductsByCategory(productsByCategory);
         setProductData(productResponse.data); // Don't need to map category name here anymore
       } catch (error) {
         console.error('Error fetching product data:', error);
@@ -136,7 +197,18 @@ const UtilitiesProduct = () => {
       const response = await axios.delete(`https://3.1.81.96/api/Products/${productId}`);
       if (response.status === 200) {
         // Successfully deleted product
-        setProductData(productData.filter((product) => product.productId !== productId));
+        const updatedProductData = productData.filter((product) => product.productId !== productId);
+        setProductData(updatedProductData);
+
+        // Update productsByCategory
+        const updatedProductsByCategory = updatedProductData.reduce((acc, product) => {
+          if (!acc[product.categoryId]) acc[product.categoryId] = [];
+          acc[product.categoryId].push(product);
+          return acc;
+        }, {});
+
+        setProductsByCategory(updatedProductsByCategory);
+
         setOpenSnackbar(true);
         setSnackbarMessage('Product deleted successfully!');
       } else {
@@ -208,8 +280,6 @@ const UtilitiesProduct = () => {
               <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
                 <CircularProgress />
               </div>
-            ) : error ? (
-              <p>{error}</p>
             ) : (
               <TableContainer component={Paper} sx={{ maxHeight: 450, overflowY: 'auto' }}>
                 <Table stickyHeader aria-label="sticky table">
@@ -217,45 +287,19 @@ const UtilitiesProduct = () => {
                     <TableRow>
                       <TableCell>Product Name</TableCell>
                       <TableCell>Category</TableCell>
-                      <TableCell>Actions</TableCell> {/* Removed Brand Name column */}
+                      <TableCell>Actions</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {filteredProductData.map((product) => (
-                      <TableRow key={product.productID}>
+                      <TableRow key={product.productId}>
                         <TableCell>{product.productName}</TableCell>
-                        <TableCell>{categoryMap[product.categoryId] || 'Unknown Category'}</TableCell>
-                        <TableCell sx={{ display: 'flex', gap: 1 }}>
-                          <Button
-                            variant="outlined"
-                            color="info"
-                            size="small"
-                            onClick={() => handleViewDetails(product)}
-                            startIcon={<Visibility />} // Add view details icon
-                            sx={{
-                              color: 'info.main',
-                              borderColor: 'info.main',
-                              '&:hover': {
-                                backgroundColor: 'info.light'
-                              }
-                            }}
-                          >
-                            View Details
+                        <TableCell>{categoryMap[product.categoryId]}</TableCell>
+                        <TableCell>
+                          <Button color="primary" onClick={() => handleViewDetails(product)} startIcon={<Visibility />} sx={{ mr: 1 }}>
+                            View
                           </Button>
-                          <Button
-                            variant="outlined"
-                            color="error"
-                            size="small"
-                            onClick={() => handleDelete(product.productId)}
-                            startIcon={<Delete />} // Add delete icon
-                            sx={{
-                              color: 'error.main', // Ensure text color matches even when hovered
-                              borderColor: 'error.main', // Ensure border color matches even when hovered
-                              '&:hover': {
-                                backgroundColor: 'error.light' // Lighten background on hover
-                              }
-                            }}
-                          >
+                          <Button color="error" onClick={() => handleDelete(product.productId)} startIcon={<Delete />}>
                             Delete
                           </Button>
                         </TableCell>
@@ -268,61 +312,77 @@ const UtilitiesProduct = () => {
           </MainCard>
         </Grid>
       </Grid>
-      <Snackbar
-        open={openSnackbar}
-        autoHideDuration={6000}
-        onClose={() => setOpenSnackbar(false)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert severity={snackbarMessage ? 'success' : 'error'}>{snackbarMessage}</Alert>
-      </Snackbar>
-      <Dialog
-        open={showAddProductDialog}
-        onClose={handleCloseAddProductDialog}
-        aria-labelledby="add-store-dialog-title"
-        aria-describedby="add-store-dialog-description"
-      >
-        <DialogTitle id="add-store-dialog-title">Add New Product</DialogTitle>
+
+      <Dialog open={showAddProductDialog} onClose={handleCloseAddProductDialog}>
+        <DialogTitle>Add New Product</DialogTitle>
         <DialogContent>
-          <DialogContentText id="add-store-dialog-description">Please enter the details of the new product.</DialogContentText>
+          <DialogContentText>Please enter the details of the new product.</DialogContentText>
+          {error && <Alert severity="error">{error}</Alert>}
           <TextField
+            autoFocus
             margin="dense"
+            id="categoryId"
             name="categoryId"
-            label="Category ID"
             type="text"
+            label="Category"
             fullWidth
-            variant="standard"
+            variant="outlined"
             value={newProductData.categoryId}
             onChange={handleChange}
-          />
+            sx={{ mb: 2 }}
+            select
+            SelectProps={{ native: true }}
+            error={!!validationErrors.categoryId}
+            helperText={validationErrors.categoryId}
+          >
+            <option value="" disabled></option>
+            {categoryOptions.map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.name}
+              </option>
+            ))}
+          </TextField>
           <TextField
             margin="dense"
+            id="productName"
             name="productName"
             label="Product Name"
             type="text"
             fullWidth
-            variant="standard"
+            variant="outlined"
             value={newProductData.productName}
             onChange={handleChange}
+            error={!!validationErrors.productName}
+            helperText={validationErrors.productName}
           />
           <TextField
             margin="dense"
+            id="productDescription"
             name="productDescription"
             label="Product Description"
             type="text"
             fullWidth
-            variant="standard"
+            variant="outlined"
             value={newProductData.productDescription}
             onChange={handleChange}
+            sx={{ mb: 2 }}
+            error={!!validationErrors.productDescription}
+            helperText={validationErrors.productDescription}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseAddProductDialog}>Cancel</Button>
-          <Button variant="contained" onClick={handleAddProduct}>
+          <Button onClick={handleAddProduct} color="primary">
             Add Product
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar open={openSnackbar} autoHideDuration={3000} onClose={() => setOpenSnackbar(false)}>
+        <Alert onClose={() => setOpenSnackbar(false)} severity="success">
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

@@ -22,10 +22,7 @@ import {
   IconButton,
   Menu,
   ListItemIcon,
-  ListItemText,
-  Select,
-  InputLabel,
-  FormControl
+  ListItemText
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { AddCircleOutlined, Edit, Delete } from '@mui/icons-material';
@@ -38,7 +35,7 @@ const EntityMenu = () => {
   const [menuData, setMenuData] = useState([]);
   const [brandData, setBrandData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [, setError] = useState(null);
   const navigate = useNavigate();
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -54,7 +51,23 @@ const EntityMenu = () => {
   const open = Boolean(anchorEl); // To track the menu to delete
   const [showEditMenuDialog, setShowEditMenuDialog] = useState(false);
   const [editingMenu, setEditingMenu] = useState(null);
+  const [validationErrors, setValidationErrors] = useState({});
   const filteredMenus = menuData.filter((menu) => menu.menuName.toLowerCase().includes(filter.toLowerCase()));
+
+  const validateNewMenuData = () => {
+    const errors = {};
+    if (!newMenuData.brandId) {
+      errors.brandId = 'Brand is required';
+    }
+    if (!newMenuData.menuName.trim()) {
+      errors.menuName = 'Menu name is required';
+    }
+    if (!newMenuData.menuDescription.trim()) {
+      errors.menuDescription = 'Menu description is required';
+    }
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleEditMenu = (menu) => {
     setEditingMenu(menu);
@@ -65,10 +78,15 @@ const EntityMenu = () => {
     setShowEditMenuDialog(false);
     setEditingMenu(null); // Reset editingMenu when dialog closes
     handleClose(); // Close menu
+    setValidationErrors({});
   };
 
   // handleSaveEdit
   const handleSaveEdit = async (menuId) => {
+    if (!validateNewMenuData()) {
+      return;
+    }
+
     try {
       const updatedMenu = {
         menuName: editingMenu.menuName,
@@ -99,9 +117,17 @@ const EntityMenu = () => {
   const handleAddMenuChange = (event) => {
     const { name, value } = event.target;
     setNewMenuData((prevState) => ({ ...prevState, [name]: value }));
+    setValidationErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: '' // Clear error for the field being updated
+    }));
   };
 
   const handleAddMenu = async () => {
+    if (!validateNewMenuData()) {
+      return;
+    }
+
     try {
       const response = await axios.post('https://3.1.81.96/api/Menus', newMenuData);
       if (response.status === 201) {
@@ -127,6 +153,7 @@ const EntityMenu = () => {
 
   const handleCloseAddMenuDialog = () => {
     setShowAddMenuDialog(false);
+    setValidationErrors({});
   };
 
   useEffect(() => {
@@ -227,10 +254,6 @@ const EntityMenu = () => {
             </Box>
             {isLoading ? (
               <CircularProgress />
-            ) : error ? (
-              <Typography variant="body1" color="error">
-                {error}
-              </Typography>
             ) : (
               <Grid container spacing={3}>
                 {filteredMenus.map((menu) => (
@@ -315,34 +338,42 @@ const EntityMenu = () => {
               <DialogTitle>Add New Menu</DialogTitle>
               <DialogContent>
                 <DialogContentText>Please enter the details of the new menu.</DialogContentText>
-
-                {/* Brand Name Dropdown */}
-                <FormControl fullWidth variant="standard" sx={{ mt: 2 }}>
-                  <InputLabel id="brand-select-label">Brand Name</InputLabel>
-                  <Select
-                    labelId="brand-select-label"
-                    id="brand-select"
-                    name="brandId"
-                    value={newMenuData.brandId}
-                    onChange={handleAddMenuChange} // Use handleAddMenuChange
-                    label="Brand Name"
-                  >
-                    {brandData.map((brand) => (
-                      <MenuItem key={brand.brandId} value={brand.brandId}>
-                        {brand.brandName}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <TextField
+                  autoFocus
+                  margin="dense"
+                  id="brand-select"
+                  name="brandId"
+                  type="text"
+                  label="Brand Name"
+                  fullWidth
+                  variant="outlined"
+                  value={newMenuData.brandId}
+                  onChange={handleAddMenuChange}
+                  select
+                  SelectProps={{ native: true }}
+                  required
+                  error={!!validationErrors.brandId}
+                  helperText={validationErrors.brandId}
+                >
+                  <option value="" disabled></option>
+                  {brandData.map((brand) => (
+                    <option key={brand.brandId} value={brand.brandId}>
+                      {brand.brandName}
+                    </option>
+                  ))}
+                </TextField>
                 <TextField
                   margin="dense"
                   name="menuName"
                   label="Menu Name"
                   type="text"
                   fullWidth
-                  variant="standard"
+                  variant="outlined"
                   value={newMenuData.menuName}
                   onChange={handleAddMenuChange} // Use handleAddMenuChange
+                  required
+                  error={!!validationErrors.menuName}
+                  helperText={validationErrors.menuName}
                 />
                 <TextField
                   margin="dense"
@@ -350,9 +381,12 @@ const EntityMenu = () => {
                   label="Menu Description"
                   type="text"
                   fullWidth
-                  variant="standard"
+                  variant="outlined"
                   value={newMenuData.menuDescription}
                   onChange={handleAddMenuChange} // Use handleAddMenuChange
+                  required
+                  error={!!validationErrors.menuDescription}
+                  helperText={validationErrors.menuDescription}
                 />
               </DialogContent>
               <DialogActions>
@@ -394,9 +428,11 @@ const EntityMenu = () => {
                   label="Menu Name"
                   type="text"
                   fullWidth
-                  variant="standard"
+                  variant="outlined"
                   value={editingMenu?.menuName || ''} // Use optional chaining
                   onChange={(e) => setEditingMenu((prevMenu) => ({ ...prevMenu, menuName: e.target.value }))}
+                  error={!!validationErrors.menuName}
+                  helperText={validationErrors.menuName}
                 />
                 <TextField
                   margin="dense"
@@ -404,9 +440,11 @@ const EntityMenu = () => {
                   label="Menu Description"
                   type="text"
                   fullWidth
-                  variant="standard"
+                  variant="outlined"
                   value={editingMenu?.menuDescription || ''} // Use optional chaining
                   onChange={(e) => setEditingMenu((prevMenu) => ({ ...prevMenu, menuDescription: e.target.value }))}
+                  error={!!validationErrors.menuDescription}
+                  helperText={validationErrors.menuDescription}
                 />
               </DialogContent>
               <DialogActions>

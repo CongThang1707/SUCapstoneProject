@@ -6,13 +6,12 @@ import Loadable from 'ui-component/Loadable';
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')));
 // utilities routing
-const UtilsTypography = Loadable(lazy(() => import('views/utilities/Typography')));
-const UtilsColor = Loadable(lazy(() => import('views/utilities/Color')));
-const UtilsShadow = Loadable(lazy(() => import('views/utilities/Shadow')));
+const UtilsUser = Loadable(lazy(() => import('views/utilities/User')));
+const UtilsBrand = Loadable(lazy(() => import('views/utilities/Brand')));
+const UtilsStore = Loadable(lazy(() => import('views/utilities/Store')));
 const UtilsProduct = Loadable(lazy(() => import('views/utilities/Product')));
 const UtilsMaterialIcons = Loadable(lazy(() => import('views/utilities/MaterialIcons')));
 const UtilsTablerIcons = Loadable(lazy(() => import('views/utilities/TablerIcons')));
-const UtilsMyBrand = Loadable(lazy(() => import('views/utilities/MyBrand')));
 // sample entities routing
 const EntityTemplate = Loadable(lazy(() => import('views/entity/Template')));
 const EntityMenu = Loadable(lazy(() => import('views/entity/Menu')));
@@ -49,8 +48,8 @@ const MainRoutes = {
       path: 'utils',
       children: [
         {
-          path: 'util-typography',
-          element: <UtilsTypography />
+          path: 'util-user',
+          element: <UtilsUser />
         }
       ]
     },
@@ -58,8 +57,8 @@ const MainRoutes = {
       path: 'utils',
       children: [
         {
-          path: 'util-color',
-          element: <UtilsColor />
+          path: 'util-brand',
+          element: <UtilsBrand />
         }
       ]
     },
@@ -67,17 +66,8 @@ const MainRoutes = {
       path: 'utils',
       children: [
         {
-          path: 'util-mybrand',
-          element: <UtilsMyBrand />
-        }
-      ]
-    },
-    {
-      path: 'utils',
-      children: [
-        {
-          path: 'util-shadow',
-          element: <UtilsShadow />
+          path: 'util-store',
+          element: <UtilsStore />
         }
       ]
     },
