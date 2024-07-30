@@ -82,5 +82,8 @@
     "immutable": "^4.3.5",
     "prettier": "^3.2.4",
     "sass": "^1.70.0"
+  },
+  "engines": {
+    "node": "16"
   }
 }
