@@ -115,7 +115,7 @@ const BrandManagerRoutes = {
       children: [
         {
           path: 'util-mystore',
-          element: <UtilsMyStore/>
+          element: <UtilsMyStore />
         }
       ]
     },
