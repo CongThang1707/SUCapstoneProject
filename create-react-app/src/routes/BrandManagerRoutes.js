@@ -16,6 +16,7 @@ const UtilsMyCollection = Loadable(lazy(() => import('views/utilities/MyCollecti
 const UtilsMyMenu = Loadable(lazy(() => import('views/utilities/MyMenu')));
 const UtilsMyTemplate = Loadable(lazy(() => import('views/utilities/MyTemplate')));
 const UtilsMyStore = Loadable(lazy(() => import('views/utilities/MyStore')));
+const UtilsProduct = Loadable(lazy(() => import('views/utilities/MyProduct')));
 // sample entities routing
 const EntityTemplate = Loadable(lazy(() => import('views/entity/Template')));
 const EntityMenu = Loadable(lazy(() => import('views/entity/Menu')));
