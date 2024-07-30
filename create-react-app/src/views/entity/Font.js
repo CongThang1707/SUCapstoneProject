@@ -10,7 +10,6 @@ import {
   CardContent,
   Tooltip,
   styled,
-  //   IconButton,
   Button,
   Dialog,
   DialogTitle,
@@ -18,11 +17,11 @@ import {
   DialogContentText,
   DialogActions,
   Snackbar,
-  Alert
+  Alert,
+  FormHelperText
 } from '@mui/material';
 import { gridSpacing } from 'store/constant';
 import FolderIcon from '@mui/icons-material/Folder';
-// import AddCircleOutlined from '@mui/icons-material/AddCircleOutline';
 import UploadIcon from '@mui/icons-material/Upload';
 
 // Create a styled card component to resemble a folder
@@ -54,6 +53,16 @@ const EntityFont = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [validationErrors, setValidationErrors] = useState({});
+
+  const validateNewFontData = () => {
+    const errors = {};
+    if (!selectedFile) {
+      errors.file = 'Please select a font file';
+    }
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0; // Return true if no errors
+  };
 
   const handleUploadClick = () => {
     setShowUploadDialog(true);
@@ -62,16 +71,17 @@ const EntityFont = () => {
   const handleCloseUploadDialog = () => {
     setShowUploadDialog(false);
     setSelectedFile(null); // Clear the selected file
+    setValidationErrors({});
   };
 
   const handleFileChange = (event) => {
     setSelectedFile(event.target.files[0]);
+    setValidationErrors((prevErrors) => ({ ...prevErrors, file: '' }));
   };
 
   const handleUploadFont = async () => {
-    if (!selectedFile) {
-      // Handle case where no file is selected (e.g., show an error message)
-      return;
+    if (!validateNewFontData()) {
+      return; // Don't proceed if validation fails
     }
 
     const formData = new FormData();
@@ -84,8 +94,6 @@ const EntityFont = () => {
       });
 
       if (response.status === 201) {
-        // Font uploaded successfully, update the fontData state
-        // setFontData((prevData) => [...prevData, response.data]);
         fetchFontData();
         setOpenSnackbar(true);
         setSnackbarMessage('Font uploaded successfully!');
@@ -120,15 +128,9 @@ const EntityFont = () => {
   const renderFontCard = (font) => (
     <Grid item xs={12} sm={6} md={4} key={font.fontId}>
       <Tooltip title={font.fontPath}>
-        {' '}
-        {/* Add tooltip for font path */}
         <FolderCard elevation={2} sx={{ transition: 'box-shadow 0.3s ease', '&:hover': { boxShadow: 4 } }}>
           <CardContent sx={{ display: 'flex', alignItems: 'center', p: 2 }}>
-            {' '}
-            {/* Adjust padding for icon and text */}
-            {/* Folder Icon */}
             <FolderIcon sx={{ fontSize: 40, mr: 2 }} />
-            {/* Font Name (styled like a folder label) */}
             <Typography variant="h6" component="div" noWrap sx={{ fontFamily: font.fontPath, fontWeight: 'bold' }}>
               {font.fontName}
             </Typography>
@@ -175,8 +177,12 @@ const EntityFont = () => {
       <Dialog open={showUploadDialog} onClose={handleCloseUploadDialog}>
         <DialogTitle>Upload New Font</DialogTitle>
         <DialogContent>
-          <DialogContentText>Select a font file to upload:</DialogContentText>
+          <DialogContentText sx={{ mt: 2 }}>Select a font file to upload:</DialogContentText>
           <input type="file" accept=".ttf,.otf" onChange={handleFileChange} />
+
+          {validationErrors.file && ( // Display file error (if any)
+            <FormHelperText error>{validationErrors.file}</FormHelperText>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseUploadDialog}>Cancel</Button>

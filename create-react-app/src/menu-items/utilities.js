@@ -19,26 +19,26 @@ const utilities = {
   type: 'group',
   children: [
     {
-      id: 'util-typography',
+      id: 'util-user',
       title: 'Users',
       type: 'item',
-      url: '/utils/util-typography',
+      url: '/utils/util-user',
       icon: icons.IconUsers,
       breadcrumbs: false
     },
     {
-      id: 'util-color',
+      id: 'util-brand',
       title: 'Brands',
       type: 'item',
-      url: '/utils/util-color',
+      url: '/utils/util-brand',
       icon: icons.IconBrandMedium,
       breadcrumbs: false
     },
     {
-      id: 'util-shadow',
+      id: 'util-store',
       title: 'Stores',
       type: 'item',
-      url: '/utils/util-shadow',
+      url: '/utils/util-store',
       icon: icons.IconBuildingStore,
       breadcrumbs: false
     },
@@ -49,14 +49,6 @@ const utilities = {
       type: 'item',
       url: '/utils/util-product',
       icon: icons.IconPackage,
-      breadcrumbs: false
-    },
-    {
-      id: 'util-make-new-template',
-      title: 'Templates',
-      type: 'item',
-      url: 'pages/template',
-      icon: icons.IconTemplate,
       breadcrumbs: false
     },
     {
