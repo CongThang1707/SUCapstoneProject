@@ -81,7 +81,12 @@ const UtilitiesProduct = () => {
       const response = await axios.post('https://3.1.81.96/api/Products', newProductData);
       if (response.status === 201) {
         // Successfully created new product
-        setError(null);
+        setNewProductData({
+          categoryID: '',
+          productName: '',
+          productDescription: ''
+        });
+        setShowAddProductDialog(false);
 
         // Fetch updated product and category data
         const [updatedProductResponse, categoryResponse] = await Promise.all([

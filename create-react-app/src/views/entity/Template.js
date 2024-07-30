@@ -86,7 +86,10 @@ const EntityTemplate = () => {
         setOpenSnackbar(true);
         setSnackbarMessage('Template added successfully!');
         setShowAddTemplateDialog(false);
-        navigate('/pages/template', { state: { templateData: response.data.templateId } });
+
+        console.log('Template added successfully:', response.data);
+        // navigate('/pages/template', { state: { templateData: response.data.templateId } });
+        navigate(`/pages/template/${response.data.templateId}`);
       } else {
         console.error('Error creating template:', response);
         setError(`Error: ${response.statusText}`);

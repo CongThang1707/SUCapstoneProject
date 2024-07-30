@@ -52,12 +52,10 @@ const MyCategory = () => {
     try {
       // Retrieve brandId from localStorage
       const brandId = localStorage.getItem('brandId');
-
       const response = await axios.post('https://3.1.81.96/api/Categories', {
         ...newCategoryData,
         brandId: brandId // Set brandId fetched from localStorage
       });
-
       if (response.status === 201) {
         // Successfully created new category
         setNewCategoryData({
@@ -82,12 +80,10 @@ const MyCategory = () => {
     try {
       // Retrieve brandId from localStorage
       const brandId = localStorage.getItem('brandId');
-
       const response = await axios.put(`https://3.1.81.96/api/Categories/${editCategoryData.categoryId}`, {
         ...editCategoryData,
         brandId: brandId // Ensure brandId is included in the update payload
       });
-
       if (response.status === 200) {
         // Successfully updated category
         setShowEditCategoryDialog(false);

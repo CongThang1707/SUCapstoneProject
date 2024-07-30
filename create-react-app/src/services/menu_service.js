@@ -11,7 +11,7 @@ class menuService {
         return new Menu(menu.menuId, menu.brandId, menu.menuName, menu.menuDescription, menu.productGroups, menu.isDeleted);
       });
 
-      // console.log('All menu by brand: ', menus);
+      // console.log('All menu by brand: ', menus[1].menuId);
 
       return menus;
     } catch (error) {

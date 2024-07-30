@@ -64,8 +64,8 @@ const FirebaseLogin = ({ ...others }) => {
 
       <Formik
         initialValues={{
-          userName: 'info@codedthemes.com',
-          password: '123456',
+          userName: 'Username',
+          password: 'Password',
           submit: null
         }}
         onSubmit={async (values, { setStatus, setSubmitting }) => {

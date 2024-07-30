@@ -42,10 +42,34 @@ const brandManagerUtilities = {
       breadcrumbs: false
     },
     {
-      id: 'util-myproduct',
-      title: 'My Products',
+      id: 'util-mycategory',
+      title: 'My Product',
       type: 'item',
-      url: '/utils/util-myproduct',
+      url: '/utils/util-mycategory',
+      icon: icons.IconPackage,
+      breadcrumbs: false
+    },
+    {
+      id: 'util-mycollection',
+      title: 'My Collection',
+      type: 'item',
+      url: '/utils/util-mycollection',
+      icon: icons.IconPackage,
+      breadcrumbs: false
+    },
+    {
+      id: 'util-mymenu',
+      title: 'My Menu',
+      type: 'item',
+      url: '/utils/util-mymenu',
+      icon: icons.IconPackage,
+      breadcrumbs: false
+    },
+    {
+      id: 'util-mytemplate',
+      title: 'My Template',
+      type: 'item',
+      url: '/utils/util-mytemplate',
       icon: icons.IconPackage,
       breadcrumbs: false
     },
