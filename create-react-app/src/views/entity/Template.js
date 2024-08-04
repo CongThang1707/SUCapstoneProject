@@ -47,7 +47,7 @@ const EntityTemplate = () => {
     brandId: '',
     templateName: '',
     templateDescription: '',
-    templateOrientation: 'vertical',
+    templateOrientation: '',
     templateImgPath: ''
   });
   const [validationErrors, setValidationErrors] = useState({});
@@ -351,7 +351,6 @@ const EntityTemplate = () => {
             helperText={validationErrors.templateDescription}
           />
           <TextField
-            autoFocus
             margin="dense"
             id="orientation-select"
             name="templateOrientation"

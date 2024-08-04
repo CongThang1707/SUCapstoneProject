@@ -48,7 +48,20 @@ const MyCategory = () => {
     categoryName: '',
     isDeleted: false
   });
+  const [validationErrors, setValidationErrors] = useState({});
+
+  const validateNewCategoryData = () => {
+    const errors = {};
+    if (!newCategoryData.categoryName.trim()) {
+      errors.categoryName = 'Category name is required';
+    }
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
   const handleAddCategory = async () => {
+    if (!validateNewCategoryData()) {
+      return;
+    }
     try {
       // Retrieve brandId from localStorage
       const brandId = localStorage.getItem('brandId');
@@ -103,6 +116,7 @@ const MyCategory = () => {
   const handleChange = (event) => {
     const { name, value } = event.target;
     setNewCategoryData((prevState) => ({ ...prevState, [name]: value }));
+    setValidationErrors((prevErrors) => ({ ...prevErrors, [name]: '' }));
   };
 
   const handleEditChange = (event) => {
@@ -112,6 +126,7 @@ const MyCategory = () => {
 
   const handleCloseAddCategoryDialog = () => {
     setShowAddCategoryDialog(false);
+    setValidationErrors({});
   };
 
   const handleCloseEditCategoryDialog = () => {
@@ -353,9 +368,12 @@ const MyCategory = () => {
             label="Category Name"
             type="text"
             fullWidth
-            variant="standard"
+            variant="outlined"
             value={newCategoryData.categoryName}
             onChange={handleChange}
+            required
+            error={!!validationErrors.categoryName}
+            helperText={validationErrors.categoryName}
           />
         </DialogContent>
         <DialogActions>

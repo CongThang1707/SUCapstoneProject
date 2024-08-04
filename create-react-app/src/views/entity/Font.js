@@ -126,7 +126,7 @@ const EntityFont = () => {
   }, []); // Empty dependency array ensures this runs only once on component mount
 
   const renderFontCard = (font) => (
-    <Grid item xs={12} sm={6} md={4} key={font.fontId}>
+    <Grid item xs={12} sm={6} md={4} key={font.bFontId}>
       <Tooltip title={font.fontPath}>
         <FolderCard elevation={2} sx={{ transition: 'box-shadow 0.3s ease', '&:hover': { boxShadow: 4 } }}>
           <CardContent sx={{ display: 'flex', alignItems: 'center', p: 2 }}>
