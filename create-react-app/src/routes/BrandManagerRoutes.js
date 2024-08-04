@@ -23,12 +23,10 @@ const EntityMenu = Loadable(lazy(() => import('views/entity/Menu')));
 // sample page routing
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 const StoreDetails = Loadable(lazy(() => import('views/sample-page/StoreDetails')));
-const ProductDetails = Loadable(lazy(() => import('views/sample-page/ProductDetails')));
 const TemplateDetails = Loadable(lazy(() => import('views/sample-page/TemplateDetails')));
 const MyMenuDetails = Loadable(lazy(() => import('views/sample-page/MyMenuDetails')));
 const MyProductDetails = Loadable(lazy(() => import('views/sample-page/MyProductDetails')));
 const MyCollectionDetails = Loadable(lazy(() => import('views/sample-page/MyCollectionDetails')));
-
 
 const BrandManagerRoutes = {
   path: '/',
@@ -157,10 +155,6 @@ const BrandManagerRoutes = {
     {
       path: 'store-details',
       element: <StoreDetails />
-    },
-    {
-      path: 'product-details',
-      element: <ProductDetails />
     },
     {
       path: 'template-details',

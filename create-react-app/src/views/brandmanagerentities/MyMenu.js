@@ -183,7 +183,7 @@ const MyMenu = () => {
   };
 
   const handleViewDetails = (menu) => {
-    navigate('/menu-details', { state: { menuData: menu } });
+    navigate('/my-menu-details', { state: { menuData: menu } });
   };
 
   const filteredMenuData = menuData.filter((menu) => {

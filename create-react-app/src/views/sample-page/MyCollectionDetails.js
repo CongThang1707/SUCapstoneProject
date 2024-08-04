@@ -439,7 +439,7 @@ const MyCollectionDetail = () => {
         <Dialog open={showDeleteItemConfirmation} onClose={() => setShowDeleteItemConfirmation(false)}>
           <DialogTitle>Confirm Delete</DialogTitle>
           <DialogContent>
-            <DialogContentText>Are you sure you want to delete this product group item? This action cannot be undone.</DialogContentText>
+            <DialogContentText>Are you sure you want to delete this product group item?</DialogContentText>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setShowDeleteItemConfirmation(false)} color="primary">
