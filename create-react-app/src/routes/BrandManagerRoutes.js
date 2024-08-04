@@ -9,6 +9,7 @@ const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')))
 const UtilsTypography = Loadable(lazy(() => import('views/utilities/User')));
 const UtilsMaterialIcons = Loadable(lazy(() => import('views/utilities/MaterialIcons')));
 const UtilsTablerIcons = Loadable(lazy(() => import('views/utilities/TablerIcons')));
+
 const UtilsMyBrand = Loadable(lazy(() => import('views/brandmanagerutilities/MyBrand')));
 const UtilsMyProduct = Loadable(lazy(() => import('views/brandmanagerutilities/MyProduct')));
 const UtilsMyCategory = Loadable(lazy(() => import('views/brandmanagerutilities/MyCategory')));
@@ -28,7 +29,6 @@ const MyMenuDetails = Loadable(lazy(() => import('views/sample-page/MyMenuDetail
 const MyProductDetails = Loadable(lazy(() => import('views/sample-page/MyProductDetails')));
 const MyCollectionDetails = Loadable(lazy(() => import('views/sample-page/MyCollectionDetails')));
 
-// ==============================|| MAIN ROUTING ||============================== //
 
 const BrandManagerRoutes = {
   path: '/',
