@@ -58,6 +58,16 @@ const MyCategory = () => {
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
+
+  const validateEditCategoryData = () => {
+    const errors = {};
+    if (!editCategoryData.categoryName.trim()) {
+      errors.categoryName = 'Category name is required';
+    }
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleAddCategory = async () => {
     if (!validateNewCategoryData()) {
       return;
@@ -90,6 +100,9 @@ const MyCategory = () => {
   };
 
   const handleEditCategory = async () => {
+    if (!validateEditCategoryData()) {
+      return;
+    }
     try {
       // Retrieve brandId from localStorage
       const brandId = localStorage.getItem('brandId');
@@ -122,6 +135,7 @@ const MyCategory = () => {
   const handleEditChange = (event) => {
     const { name, value } = event.target;
     setEditCategoryData((prevState) => ({ ...prevState, [name]: value }));
+    setValidationErrors((prevErrors) => ({ ...prevErrors, [name]: '' }));
   };
 
   const handleCloseAddCategoryDialog = () => {
@@ -131,6 +145,7 @@ const MyCategory = () => {
 
   const handleCloseEditCategoryDialog = () => {
     setShowEditCategoryDialog(false);
+    setValidationErrors({});
   };
 
   const handleEditClick = (category) => {
@@ -399,9 +414,12 @@ const MyCategory = () => {
             label="Category Name"
             type="text"
             fullWidth
-            variant="standard"
+            variant="outlined"
             value={editCategoryData.categoryName}
             onChange={handleEditChange}
+            required
+            error={!!validationErrors.categoryName}
+            helperText={validationErrors.categoryName}
           />
         </DialogContent>
         <DialogActions>

@@ -8,7 +8,6 @@ import {
   Snackbar,
   Alert,
   Stack,
-  Divider,
   Typography,
   Box,
   Dialog,
@@ -37,8 +36,6 @@ import AddCircleOutlined from '@mui/icons-material/AddCircleOutlined';
 const MyProductDetails = () => {
   const location = useLocation();
   const { productData } = location.state || {};
-  const [isEditing, setIsEditing] = useState(false);
-  const [updatedProductData, setUpdatedProductData] = useState(productData || {});
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [productSizePrices, setProductSizePrices] = useState([]); // Initialize as an array
@@ -48,8 +45,43 @@ const MyProductDetails = () => {
     productSizeType: '',
     price: ''
   });
+  const [categories, setCategories] = useState([]);
+  const [validationErrors, setValidationErrors] = useState({});
+
+  const validateNewSizePriceData = () => {
+    const errors = {};
+    if (!newSizePriceData.productSizeType === '') {
+      errors.productSizeType = 'Product size type is required';
+    }
+    if (!newSizePriceData.price.trim()) {
+      errors.price = 'Price is required';
+    }
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get('https://3.1.81.96/api/Categories'); // Adjust the URL as needed
+        setCategories(response.data);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  const getCategoryName = (categoryId) => {
+    const category = categories.find((cat) => cat.categoryId === categoryId);
+    return category ? category.categoryName : 'Unknown Category';
+  };
 
   const handleAddSizePrice = async () => {
+    if (!validateNewSizePriceData()) {
+      return;
+    }
     try {
       const response = await axios.post('https://3.1.81.96/api/ProductSizePrices', {
         productId: productData.productId,
@@ -75,10 +107,10 @@ const MyProductDetails = () => {
   const handleAddSizePriceChange = (event) => {
     const { name, value } = event.target;
     setNewSizePriceData((prevState) => ({ ...prevState, [name]: value }));
+    setValidationErrors((prevErrors) => ({ ...prevErrors, [name]: '' }));
   };
 
   useEffect(() => {
-    setUpdatedProductData(productData);
     if (productData?.productId) {
       const fetchProductSizePrices = async () => {
         try {
@@ -109,28 +141,6 @@ const MyProductDetails = () => {
   };
 
   const filteredProductSizePrices = productSizePrices.filter((sizePrice) => sizePrice.productId === productData.productId);
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setUpdatedProductData((prevData) => ({ ...prevData, [name]: value }));
-  };
-
-  const handleUpdateProduct = async () => {
-    try {
-      const response = await axios.put(`https://3.1.81.96/api/Products/${updatedProductData.productId}`, updatedProductData);
-      if (response.status === 200) {
-        location.state.productData = response.data;
-        setUpdatedProductData(response.data);
-        setOpenSnackbar(true);
-        setSnackbarMessage('Product updated successfully!');
-        setIsEditing(false);
-      } else {
-        console.error('Error updating product:', response);
-      }
-    } catch (error) {
-      console.error('Error updating product:', error);
-    }
-  };
 
   if (!productData) return <p>Product data not found.</p>;
 
@@ -186,15 +196,9 @@ const MyProductDetails = () => {
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Typography variant="subtitle1" sx={{ mr: 1 }}>
-              Product ID:
+              Category:
             </Typography>
-            <Typography variant="body1">{productData.productId}</Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography variant="subtitle1" sx={{ mr: 1 }}>
-              Category ID:
-            </Typography>
-            <Typography variant="body1">{productData.categoryId || 'Unknown Category'}</Typography>
+            <Typography variant="body1">{getCategoryName(productData.categoryId)}</Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Typography variant="subtitle1" sx={{ mr: 1 }}>
@@ -208,11 +212,7 @@ const MyProductDetails = () => {
             </Typography>
             <Typography variant="body1">{productData.productDescription}</Typography>
           </Box>
-          <Button variant="outlined" color="primary" onClick={() => setIsEditing(true)} startIcon={<EditIcon />}>
-            Update
-          </Button>
-          <Divider sx={{ my: 2 }} />
-          <Typography variant="h6">Size Prices:</Typography>
+          <Typography variant="subtitle1">Size Prices:</Typography>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
             <Button variant="contained" color="primary" onClick={() => setShowAddSizePriceDialog(true)} startIcon={<AddCircleOutlined />}>
               Add Size Price
@@ -265,53 +265,14 @@ const MyProductDetails = () => {
               </TableBody>
             </Table>
           </TableContainer>
-          {!isEditing && filteredProductSizePrices.length === 0 && <p>No size prices found</p>}
+          {filteredProductSizePrices.length === 0 && <p>No size prices found</p>}
         </Box>
-
-        <Dialog open={isEditing} onClose={() => setIsEditing(false)}>
-          <DialogTitle>Update Product</DialogTitle>
-          <DialogContent>
-            <DialogContentText>Make changes to the product details:</DialogContentText>
-            <TextField
-              label="Category ID"
-              name="categoryID"
-              value={updatedProductData.categoryId}
-              onChange={handleChange}
-              fullWidth
-              margin="normal"
-            />
-            <TextField
-              label="Product Name"
-              name="productName"
-              value={updatedProductData.productName}
-              onChange={handleChange}
-              fullWidth
-              margin="normal"
-            />
-            <TextField
-              label="Product Description"
-              name="productDescription"
-              value={updatedProductData.productDescription}
-              onChange={handleChange}
-              fullWidth
-              margin="normal"
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setIsEditing(false)} color="primary">
-              Cancel
-            </Button>
-            <Button onClick={handleUpdateProduct} color="primary" variant="contained">
-              Save Changes
-            </Button>
-          </DialogActions>
-        </Dialog>
 
         <Dialog open={showAddSizePriceDialog} onClose={() => setShowAddSizePriceDialog(false)}>
           <DialogTitle>Add New Size Price</DialogTitle>
           <DialogContent>
             <DialogContentText>Enter the size and price details:</DialogContentText>
-            <FormControl fullWidth variant="standard" sx={{ mt: 2 }}>
+            <FormControl fullWidth variant="outlined" sx={{ mt: 2 }} error={!!validationErrors.productSizeType}>
               <InputLabel id="size-select-label">Size</InputLabel>
               <Select
                 labelId="size-select-label"
@@ -333,13 +294,23 @@ const MyProductDetails = () => {
               label="Price"
               type="number"
               fullWidth
-              variant="standard"
+              variant="outlined"
               value={newSizePriceData.price}
               onChange={handleAddSizePriceChange}
+              required
+              error={!!validationErrors.price}
+              helperText={validationErrors.price}
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setShowAddSizePriceDialog(false)}>Cancel</Button>
+            <Button
+              onClick={() => {
+                setShowAddSizePriceDialog(false);
+                setValidationErrors({});
+              }}
+            >
+              Cancel
+            </Button>
             <Button onClick={handleAddSizePrice} variant="contained">
               Add
             </Button>

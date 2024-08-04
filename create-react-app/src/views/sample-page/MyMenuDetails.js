@@ -10,10 +10,8 @@ import {
   AccordionSummary,
   AccordionDetails,
   ListItem,
-  Chip,
   Grid,
   ListItemText,
-  Stack,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -26,7 +24,11 @@ import {
   IconButton,
   FormGroup,
   FormControlLabel,
-  Switch
+  Switch,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl
 } from '@mui/material';
 import axios from 'axios';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -37,11 +39,13 @@ const MenuDetails = () => {
   const location = useLocation();
   const { menuData: initialMenuData } = location.state || {}; // Get menu data from location state
   const [menuData, setMenuData] = useState(initialMenuData || {});
+  const [categories, setCategories] = useState([]);
+  const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [productData, setProductData] = useState({}); // State to store product details
+  const [, setError] = useState(null);
+  const [, setProductData] = useState({}); // State to store product details
   const [productGroupItemsData, setProductGroupItemsData] = useState({});
-  const [productSizePrices, setProductSizePrices] = useState({});
+  const [, setProductSizePrices] = useState({});
   const [showAddProductGroupDialog, setShowAddProductGroupDialog] = useState(false);
   const [newProductGroupData, setNewProductGroupData] = useState({
     productGroupName: '',
@@ -60,13 +64,39 @@ const MenuDetails = () => {
     productId: ''
   });
   const [showDeleteItemConfirmation, setShowDeleteItemConfirmation] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState(null);
+  const [itemToDelete] = useState(null);
+  const [productGroups, setProductGroups] = useState([]);
+  const [validationErrors, setValidationErrors] = useState({});
 
-  const handleDeleteProductGroupItem = (itemId) => {
-    // Set the item to delete and open the confirmation dialog
-    setItemToDelete(itemId);
-    setShowDeleteItemConfirmation(true);
+  const validateNewProductGroupData = () => {
+    const errors = {};
+    if (!newProductGroupData.productGroupName) {
+      errors.productGroupName = 'Product group name is required';
+    }
+    if (!newProductGroupData.productGroupMaxCapacity.trim()) {
+      errors.productGroupMaxCapacity = 'Product group max capacity is required';
+    }
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
   };
+
+  const validateNewProductGroupItemData = () => {
+    const errors = {};
+    if (!newProductGroupItemData.productGroupId) {
+      errors.productGroupId = 'Product group name is required';
+    }
+    if (!newProductGroupItemData.productId) {
+      errors.productId = 'Product is required';
+    }
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // const handleDeleteProductGroupItem = (itemId) => {
+  //   // Set the item to delete and open the confirmation dialog
+  //   setItemToDelete(itemId);
+  //   setShowDeleteItemConfirmation(true);
+  // };
 
   const confirmDeleteProductGroupItem = async () => {
     try {
@@ -98,46 +128,59 @@ const MenuDetails = () => {
   const handleAddProductGroupItemChange = (event) => {
     const { name, value } = event.target;
     setNewProductGroupItemData((prevState) => ({ ...prevState, [name]: value }));
+    setValidationErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: '' // Clear error for the field being updated
+    }));
   };
 
   const handleSaveAddProductGroupItem = async () => {
+    if (!validateNewProductGroupItemData()) {
+      return;
+    }
     try {
       const dataToSend = {
         productGroupId: parseInt(newProductGroupItemData.productGroupId, 10),
         productId: parseInt(newProductGroupItemData.productId, 10)
       };
+      console.log(dataToSend);
+
       const response = await axios.post(`https://3.1.81.96/api/ProductGroupItem`, dataToSend);
+
       if (response.status === 201) {
+        // Successful response code for created item
         const newItem = response.data;
 
-        // Update the productGroupItemsData to include the new item
-        setProductGroupItemsData((prevData) => ({
-          ...prevData,
-          [newItem.productGroupId]: [...(prevData[newItem.productGroupId] || []), newItem]
-        }));
+        // Update the productGroupItemsData
+        setProductGroupItemsData((prevData) => {
+          const newData = { ...prevData };
+          // If the group doesn't exist yet, create an empty array for it
+          if (!newData[newItem.productGroupId]) {
+            newData[newItem.productGroupId] = [];
+          }
+          newData[newItem.productGroupId].push(newItem);
+          return newData;
+        });
 
-        setMenuData((prevMenuData) => ({
-          ...prevMenuData,
-          productGroups: prevMenuData.productGroups.map((group) =>
-            group.productGroupId === newItem.productGroupId
-              ? {
-                  ...group,
-                  productGroupItems: [...(group.productGroupItems || []), newItem]
-                }
-              : group
-          )
-        }));
         setOpenSnackbar(true);
         setSnackbarMessage('Product group item added successfully!');
       } else {
+        // Handle the error response from the API
         console.error('Error adding product group item:', response);
-        setError(response.data?.error || response.statusText); // Show specific error message from backend
+        const errorResponse = response.data; // Assuming your API returns error details
+        setError(errorResponse?.error || 'An error occurred while adding the product group item.');
+        setOpenSnackbar(true);
       }
     } catch (error) {
       console.error('Error adding product group item:', error);
-      setError('An error occurred while creating the menu item.');
+      setError('An error occurred while adding the product group item.');
+      setOpenSnackbar(true);
     } finally {
       setShowAddProductGroupItemDialog(false);
+      setNewProductGroupItemData({
+        productGroupId: '',
+        productId: ''
+      }); // Reset the form fields
     }
   };
 
@@ -241,9 +284,17 @@ const MenuDetails = () => {
       ...prevState,
       [name]: name === 'haveNormalPrice' ? checked : value // Update boolean for Switch
     }));
+    setValidationErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: '' // Clear error for the field being updated
+    }));
   };
 
   const handleAddProductGroup = async () => {
+    if (!validateNewProductGroupData()) {
+      return;
+    }
+
     try {
       // Prepare data to send to the API
       const dataToSend = {
@@ -280,6 +331,49 @@ const MenuDetails = () => {
       }); // Reset all the fields in newProductGroupData
     }
   };
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const brandId = localStorage.getItem('brandId');
+        const response = await axios.get('https://3.1.81.96/api/Categories', {
+          params: {
+            brandId: brandId,
+            pageNumber: 1,
+            pageSize: 100
+          }
+        }); // Replace with your API endpoint
+        setCategories(response.data); // Assuming response.data is an array of categories
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        setError('An error occurred while fetching categories.');
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const brandId = localStorage.getItem('brandId');
+        const response = await axios.get('https://3.1.81.96/api/Products', {
+          params: {
+            brandId: brandId,
+            pageNumber: 1,
+            pageSize: 100
+          }
+        }); // Replace with your API endpoint
+        setProducts(response.data); // Assuming response.data is an array of products
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        setError('An error occurred while fetching products.');
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -288,6 +382,8 @@ const MenuDetails = () => {
       try {
         // Fetch product group items for this menu
         const productGroupResponse = await axios.get(`https://3.1.81.96/api/ProductGroup/GroupItem?menuId=${menuData.menuId}`);
+        setProductGroups(productGroupResponse.data);
+        console.log(productGroupResponse.data);
         const productGroupItems = productGroupResponse.data;
         // Get unique product IDs from all product groups
         const productIds =
@@ -342,23 +438,26 @@ const MenuDetails = () => {
       }
     };
 
-    fetchData();
-  }, [menuData.menuId, menuData.productGroups]);
-
-  const getProductSizeType = (sizeType) => {
-    switch (sizeType) {
-      case 0:
-        return 'S';
-      case 1:
-        return 'M';
-      case 2:
-        return 'L';
-      case 3:
-        return 'N';
-      default:
-        return 'Unknown';
+    if (menuData?.menuId) {
+      // Check if menuData is not undefined
+      fetchData();
     }
-  };
+  }, [menuData]);
+
+  // const getProductSizeType = (sizeType) => {
+  //   switch (sizeType) {
+  //     case 0:
+  //       return 'S';
+  //     case 1:
+  //       return 'M';
+  //     case 2:
+  //       return 'L';
+  //     case 3:
+  //       return 'N';
+  //     default:
+  //       return 'Unknown';
+  //   }
+  // };
 
   return (
     <MainCard title={<Typography variant="h5">Menu Details</Typography>}>
@@ -370,10 +469,6 @@ const MenuDetails = () => {
         <Typography variant="h6">Product Groups:</Typography>
         {isLoading ? (
           <CircularProgress />
-        ) : error ? (
-          <Typography variant="body1" color="error">
-            {error}
-          </Typography>
         ) : (
           <>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
@@ -387,7 +482,7 @@ const MenuDetails = () => {
               </Button>
             </Box>
             <List>
-              {menuData.productGroups?.map((group) => (
+              {productGroups?.map((group) => (
                 <Accordion key={group.productGroupId} sx={{ border: '1px solid lightgray', mb: 2 }}>
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                     <Typography>{group.productGroupName}</Typography>
@@ -400,46 +495,41 @@ const MenuDetails = () => {
                   </AccordionSummary>
                   <AccordionDetails sx={{ p: 2 }}>
                     <List>
-                      {productGroupItemsData[group.productGroupId]?.map((item) => {
-                        const product = productData[item.productId];
-                        const sizePrices = productSizePrices[item.productId];
-
-                        return product ? (
-                          <ListItem key={item.productGroupItemId} disablePadding>
-                            <Grid container alignItems="center">
-                              {/* Product Name and Description */}
-                              <Grid item xs={8} md={9}>
-                                <ListItemText primary={product.productName} />
-                              </Grid>
-
-                              {/* Size and Price (horizontal layout) */}
-                              <Grid item xs={4} md={3} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-                                <Stack direction="row" spacing={8}>
-                                  {sizePrices?.map((sizePrice) => (
-                                    <Chip
-                                      key={sizePrice.productSizePriceId}
-                                      label={`${getProductSizeType(sizePrice.productSizeType)} - $${sizePrice.price}`}
-                                      size="small"
-                                      sx={{
-                                        backgroundColor: '#f0f0f0',
-                                        color: 'text.primary',
-                                        border: '1px solid #e0e0e0'
-                                      }}
-                                    />
-                                  ))}
-                                </Stack>
-                                <IconButton
-                                  aria-label="delete"
-                                  onClick={() => handleDeleteProductGroupItem(item.productGroupItemId)}
-                                  sx={{ ml: 1 }} // Margin left for spacing
-                                >
-                                  <DeleteIcon color="error" />
-                                </IconButton>
-                              </Grid>
+                      {group.productGroupItems?.map((item) => (
+                        <ListItem key={item.productGroupItemId} disablePadding>
+                          <Grid container alignItems="center">
+                            {/* Product Name and Description */}
+                            <Grid item xs={8} md={9}>
+                              <ListItemText primary={item.productId} />
                             </Grid>
-                          </ListItem>
-                        ) : null;
-                      })}
+
+                            {/* Size and Price (horizontal layout) */}
+                            {/* <Grid item xs={4} md={3} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                              <Stack direction="row" spacing={8}>
+                                {sizePrices?.map((sizePrice) => (
+                                  <Chip
+                                    key={sizePrice.productSizePriceId}
+                                    label={`${getProductSizeType(sizePrice.productSizeType)} - $${sizePrice.price}`}
+                                    size="small"
+                                    sx={{
+                                      backgroundColor: '#f0f0f0',
+                                      color: 'text.primary',
+                                      border: '1px solid #e0e0e0'
+                                    }}
+                                  />
+                                ))}
+                              </Stack>
+                              <IconButton
+                                aria-label="delete"
+                                onClick={() => handleDeleteProductGroupItem(item.productGroupItemId)}
+                                sx={{ ml: 1 }} // Margin left for spacing
+                              >
+                                <DeleteIcon color="error" />
+                              </IconButton>
+                            </Grid> */}
+                          </Grid>
+                        </ListItem>
+                      ))}
                     </List>
                   </AccordionDetails>
                 </Accordion>
@@ -469,30 +559,61 @@ const MenuDetails = () => {
             <TextField
               autoFocus
               margin="dense"
-              id="productGroupId" // Add this TextField for productGroupId
-              label="Product Group ID"
-              type="number"
-              fullWidth
-              variant="standard"
+              id="product-group-select-label"
               name="productGroupId"
+              type="text"
+              label="Product Group"
+              fullWidth
+              variant="outlined"
               value={newProductGroupItemData.productGroupId}
               onChange={handleAddProductGroupItemChange}
-            />
+              select
+              SelectProps={{ native: true }}
+              error={!!validationErrors.productGroupId}
+              helperText={validationErrors.productGroupId}
+              required
+            >
+              <option value="" disabled></option>
+              {productGroups.map((group) => (
+                <option key={group.productGroupId} value={group.productGroupId}>
+                  {group.productGroupName}
+                </option>
+              ))}
+            </TextField>
             <TextField
               autoFocus
               margin="dense"
-              id="productId"
-              label="Product ID"
-              type="number"
-              fullWidth
-              variant="standard"
+              id="product-select-label"
               name="productId"
+              type="text"
+              label="Product"
+              fullWidth
+              variant="outlined"
               value={newProductGroupItemData.productId}
               onChange={handleAddProductGroupItemChange}
-            />
+              select
+              SelectProps={{ native: true }}
+              error={!!validationErrors.productId}
+              helperText={validationErrors.productId}
+              required
+            >
+              <option value="" disabled></option>
+              {products.map((product) => (
+                <option key={product.productId} value={product.productId}>
+                  {product.productName}
+                </option>
+              ))}
+            </TextField>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setShowAddProductGroupItemDialog(false)}>Cancel</Button>
+            <Button
+              onClick={() => {
+                setShowAddProductGroupItemDialog(false);
+                setValidationErrors({});
+              }}
+            >
+              Cancel
+            </Button>
             <Button onClick={handleSaveAddProductGroupItem} variant="contained">
               Add
             </Button>
@@ -506,25 +627,40 @@ const MenuDetails = () => {
           <TextField
             autoFocus
             margin="dense"
-            id="productGroupName"
-            label="Product Group Name"
+            id="product-group-name-label"
+            name="productGroupName"
             type="text"
+            label="Product Group Name"
             fullWidth
-            variant="standard"
-            name="productGroupName" // Add name attribute to bind to state
-            value={newProductGroupData.productGroupName} // Bind to newProductGroupData
+            variant="outlined"
+            value={newProductGroupData.productGroupName}
             onChange={handleAddProductGroupChange}
-          />
+            select
+            SelectProps={{ native: true }}
+            required
+            error={!!validationErrors.productGroupName}
+            helperText={validationErrors.productGroupName}
+          >
+            <option value="" disabled></option>
+            {categories.map((category) => (
+              <option key={category.categoryId} value={category.categoryName}>
+                {category.categoryName}
+              </option>
+            ))}
+          </TextField>
           <TextField
             margin="dense"
             id="productGroupMaxCapacity"
             label="Max Capacity"
             type="number"
             fullWidth
-            variant="standard"
+            variant="outlined"
             name="productGroupMaxCapacity" // Add name attribute to bind to state
             value={newProductGroupData.productGroupMaxCapacity} // Bind to newProductGroupData
             onChange={handleAddProductGroupChange}
+            required
+            error={!!validationErrors.productGroupMaxCapacity}
+            helperText={validationErrors.productGroupMaxCapacity}
           />
           <FormGroup>
             <FormControlLabel
@@ -540,7 +676,14 @@ const MenuDetails = () => {
           </FormGroup>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowAddProductGroupDialog(false)}>Cancel</Button>
+          <Button
+            onClick={() => {
+              setShowAddProductGroupDialog(false);
+              setValidationErrors({});
+            }}
+          >
+            Cancel
+          </Button>
           <Button onClick={handleAddProductGroup} variant="contained">
             Add Product Group
           </Button>
@@ -551,18 +694,22 @@ const MenuDetails = () => {
         <DialogTitle>Edit Product Group</DialogTitle>
         <DialogContent>
           <DialogContentText>Update the details of the product group:</DialogContentText>
-          <TextField
-            autoFocus
-            margin="dense"
-            id="productGroupName"
-            label="Product Group Name"
-            type="text"
-            fullWidth
-            variant="standard"
-            name="productGroupName"
-            value={editingProductGroup?.productGroupName || ''}
-            onChange={handleChangeProductGroup}
-          />
+          <FormControl fullWidth variant="standard" required>
+            <InputLabel id="product-group-name-label">Product Group Name</InputLabel>
+            <Select
+              fullWidth
+              variant="standard"
+              name="productGroupName"
+              value={editingProductGroup?.productGroupName || ''}
+              onChange={handleChangeProductGroup}
+            >
+              {categories.map((category) => (
+                <MenuItem key={category.categoryId} value={category.categoryName}>
+                  {category.categoryName}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <TextField
             margin="dense"
             id="productGroupMaxCapacity"
@@ -573,6 +720,7 @@ const MenuDetails = () => {
             name="productGroupMaxCapacity"
             value={editingProductGroup?.productGroupMaxCapacity || ''}
             onChange={handleChangeProductGroup}
+            required
           />
           <FormGroup>
             <FormControlLabel

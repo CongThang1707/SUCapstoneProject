@@ -81,64 +81,64 @@ const UtilitiesBrandStaff = () => {
     return Object.keys(errors).length === 0;
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      setError(null);
+  const fetchData = async () => {
+    setIsLoading(true);
+    setError(null);
 
-      try {
-        const [userResponse, brandResponse, allBrandsResponse, allStoresResponse] = await Promise.all([
-          axios.get('https://3.1.81.96/api/Users?pageNumber=1&pageSize=1000'),
-          axios.get('https://3.1.81.96/api/Brands/BrandStaff'),
-          axios.get('https://3.1.81.96/api/Brands'),
-          axios.get('https://3.1.81.96/api/Stores') // Fetch stores
-        ]);
+    try {
+      const [userResponse, brandResponse, allBrandsResponse, allStoresResponse] = await Promise.all([
+        axios.get('https://3.1.81.96/api/Users?pageNumber=1&pageSize=1000'),
+        axios.get('https://3.1.81.96/api/Brands/BrandStaff?pageNumber=1&pageSize=1000'),
+        axios.get('https://3.1.81.96/api/Brands?pageNumber=1&pageSize=1000'),
+        axios.get('https://3.1.81.96/api/Stores?pageNumber=1&pageSize=1000') // Fetch stores
+      ]);
 
-        const filteredUsers = userResponse.data.filter((user) => user.role !== 0);
-        const userMap = {};
-        filteredUsers.forEach((user) => {
-          userMap[user.userId] = user;
-        });
-        setUserData(userMap);
+      const filteredUsers = userResponse.data.filter((user) => user.role !== 0);
+      const userMap = {};
+      filteredUsers.forEach((user) => {
+        userMap[user.userId] = user;
+      });
+      setUserData(userMap);
 
-        const assignedUserIds = new Set(brandResponse.data.flatMap((brand) => brand.brandStaffs.map((staff) => staff.userId)));
+      const assignedUserIds = new Set(brandResponse.data.flatMap((brand) => brand.brandStaffs.map((staff) => staff.userId)));
 
-        const updatedBrandData = brandResponse.data.map((brand) => {
-          const updatedBrandStaffs = brand.brandStaffs
-            .filter((staff) => assignedUserIds.has(staff.userId))
-            .map((staff) => ({
-              ...staff,
-              userName: userMap[staff.userId]?.userName || 'Unknown User',
-              email: userMap[staff.userId]?.email || 'Unknown Email',
-              role: userMap[staff.userId]?.role || 'Unknown Role',
-              brandName: brand.brandName
-            }));
-
-          return {
-            ...brand,
-            brandStaffs: updatedBrandStaffs
-          };
-        });
-
-        const unassignedUsers = filteredUsers
-          .filter((user) => !assignedUserIds.has(user.userId))
-          .map((user) => ({
-            ...user,
-            brandName: 'Unassigned'
+      const updatedBrandData = brandResponse.data.map((brand) => {
+        const updatedBrandStaffs = brand.brandStaffs
+          .filter((staff) => assignedUserIds.has(staff.userId))
+          .map((staff) => ({
+            ...staff,
+            userName: userMap[staff.userId]?.userName || 'Unknown User',
+            email: userMap[staff.userId]?.email || 'Unknown Email',
+            role: userMap[staff.userId]?.role || 'Unknown Role',
+            brandName: brand.brandName
           }));
 
-        const allUsers = [...updatedBrandData.flatMap((brand) => brand.brandStaffs), ...unassignedUsers];
+        return {
+          ...brand,
+          brandStaffs: updatedBrandStaffs
+        };
+      });
 
-        setBrandData(allUsers);
-        setBrands(allBrandsResponse.data);
-        setStores(allStoresResponse.data); // Set stores data
-      } catch (err) {
-        setError('Error fetching data');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      const unassignedUsers = filteredUsers
+        .filter((user) => !assignedUserIds.has(user.userId))
+        .map((user) => ({
+          ...user,
+          brandName: 'Unassigned'
+        }));
 
+      const allUsers = [...updatedBrandData.flatMap((brand) => brand.brandStaffs), ...unassignedUsers];
+
+      setBrandData(allUsers);
+      setBrands(allBrandsResponse.data);
+      setStores(allStoresResponse.data); // Set stores data
+    } catch (err) {
+      setError('Error fetching data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -212,8 +212,8 @@ const UtilitiesBrandStaff = () => {
       }).showToast();
       setIsLoading(true);
       const [userResponse, brandResponse] = await Promise.all([
-        axios.get('https://3.1.81.96/api/Users'),
-        axios.get('https://3.1.81.96/api/Brands/BrandStaff')
+        axios.get('https://3.1.81.96/api/Users?pageNumber=1&pageSize=1000'),
+        axios.get('https://3.1.81.96/api/Brands/BrandStaff?pageNumber=1&pageSize=1000')
       ]);
       const filteredUsers = userResponse.data.filter((user) => user.role !== 0);
       const userMap = {};
@@ -285,40 +285,7 @@ const UtilitiesBrandStaff = () => {
         backgroundColor: 'linear-gradient(to right, #00b09b, #96c93d)'
       }).showToast();
       setIsLoading(true);
-      const [userResponse, brandResponse] = await Promise.all([
-        axios.get('https://3.1.81.96/api/Users'),
-        axios.get('https://3.1.81.96/api/Brands/BrandStaff')
-      ]);
-      const filteredUsers = userResponse.data.filter((user) => user.role !== 0);
-      const userMap = {};
-      filteredUsers.forEach((user) => {
-        userMap[user.userId] = user;
-      });
-      setUserData(userMap);
-      const assignedUserIds = new Set(brandResponse.data.flatMap((brand) => brand.brandStaffs.map((staff) => staff.userId)));
-      const updatedBrandData = brandResponse.data.map((brand) => {
-        const updatedBrandStaffs = brand.brandStaffs
-          .filter((staff) => assignedUserIds.has(staff.userId))
-          .map((staff) => ({
-            ...staff,
-            userName: userMap[staff.userId]?.userName || 'Unknown User',
-            email: userMap[staff.userId]?.email || 'Unknown Email',
-            role: userMap[staff.userId]?.role || 'Unknown Role',
-            brandName: brand.brandName
-          }));
-        return {
-          ...brand,
-          brandStaffs: updatedBrandStaffs
-        };
-      });
-      const unassignedUsers = filteredUsers
-        .filter((user) => !assignedUserIds.has(user.userId))
-        .map((user) => ({
-          ...user,
-          brandName: 'Unassigned'
-        }));
-      const allUsers = [...updatedBrandData.flatMap((brand) => brand.brandStaffs), ...unassignedUsers];
-      setBrandData(allUsers);
+      fetchData();
     } catch (err) {
       setError('Error assigning user to brand');
     } finally {
