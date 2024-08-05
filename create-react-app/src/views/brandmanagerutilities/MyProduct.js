@@ -16,7 +16,8 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogTitle
+  DialogTitle,
+  MenuItem
 } from '@mui/material';
 import { Edit, Delete, Add, Visibility } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -32,22 +33,52 @@ const MyProduct = () => {
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [newProduct, setNewProduct] = useState({
+    categoryId: categoryId,
     productName: '',
-    productDescription: ''
+    productDescription: '',
+    productPriceCurrency: '',
+    productImgPath: '',
+    productLogoPath: ''
   });
-  const [productToEdit, setProductToEdit] = useState(null);
+  const [productToEdit, setProductToEdit] = useState({
+    categoryId: categoryId,
+    productName: '',
+    productDescription: '',
+    productPriceCurrency: '',
+    productImgPath: '',
+    productLogoPath: ''
+  });
   const [productToDelete, setProductToDelete] = useState(null);
   const navigate = useNavigate();
   const [validationErrors, setValidationErrors] = useState({});
 
   const validateNewProductData = () => {
     const errors = {};
+
+
+    if (!newProduct.categoryId) {
+      errors.categoryId = 'Category is required';
+    }
+
     if (!newProduct.productName.trim()) {
       errors.productName = 'Product name is required';
+    } else if (newProduct.productName.trim().length > 100) {
+      errors.productName = 'Product name must be 100 characters or less';
     }
+
     if (!newProduct.productDescription.trim()) {
       errors.productDescription = 'Product description is required';
+    } else if (newProduct.productDescription.trim().length > 200) {
+      errors.productDescription = 'Product description must be 200 characters or less';
     }
+
+    const categoryProducts = productsByCategory[newProduct.categoryId] || [];
+    const duplicateProduct = categoryProducts.find((product) => product.productName === newProduct.productName);
+
+    if (duplicateProduct) {
+      errors.productName = 'A product with this name already exists in the selected category.';
+    }
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -56,9 +87,13 @@ const MyProduct = () => {
     const errors = {};
     if (!productToEdit.productName.trim()) {
       errors.productName = 'Product name is required';
+    } else if (productToEdit.productName.trim().length > 100) {
+      errors.productName = 'Product name must be 100 characters or less';
     }
     if (!productToEdit.productDescription.trim()) {
       errors.productDescription = 'Product description is required';
+    } else if (productToEdit.productDescription.trim().length > 200) {
+      errors.productDescription = 'Product description must be 200 characters or less';
     }
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
@@ -103,8 +138,12 @@ const MyProduct = () => {
   const handleCloseAddDialog = () => {
     setOpenAddDialog(false);
     setNewProduct({
+      categoryId: categoryId,
       productName: '',
-      productDescription: ''
+      productDescription: '',
+      productPriceCurrency: '',
+      productImgPath: '',
+      productLogoPath: ''
     });
     setValidationErrors({});
   };
@@ -126,11 +165,13 @@ const MyProduct = () => {
       return;
     }
     try {
-      await axios.post('https://3.1.81.96/api/Products', {
+      const payload = {
         ...newProduct,
-        categoryId
-      });
-      // Fetch the updated list of products
+        productPriceCurrency: parseFloat(newProduct.productPriceCurrency),
+
+      };
+      console.log('payload:', payload);
+      await axios.post('https://3.1.81.96/api/Products', payload);
       const response = await axios.get('https://3.1.81.96/api/Products', {
         params: {
           pageNumber: 1,
@@ -161,7 +202,7 @@ const MyProduct = () => {
     const { name, value } = e.target;
     setProductToEdit((prev) => ({
       ...prev,
-      [name]: value
+      [name]: name === 'productPriceCurrency' ? Number(value) : value
     }));
     setValidationErrors((prevErrors) => ({
       ...prevErrors,
@@ -175,7 +216,6 @@ const MyProduct = () => {
     }
     try {
       await axios.put(`https://3.1.81.96/api/Products/${productToEdit.productId}`, productToEdit);
-      // Fetch the updated list of products
       const response = await axios.get('https://3.1.81.96/api/Products', {
         params: {
           pageNumber: 1,
@@ -242,8 +282,11 @@ const MyProduct = () => {
             <Table stickyHeader aria-label="sticky table">
               <TableHead>
                 <TableRow>
-                  <TableCell>Product Name</TableCell>
+                  <TableCell>Name</TableCell>
                   <TableCell>Description</TableCell>
+                  <TableCell>Price Currency</TableCell>
+                  <TableCell>Image</TableCell>
+                  <TableCell>Logo</TableCell>
                   <TableCell>Actions</TableCell>
                 </TableRow>
               </TableHead>
@@ -252,6 +295,29 @@ const MyProduct = () => {
                   <TableRow key={product.productId}>
                     <TableCell>{product.productName}</TableCell>
                     <TableCell>{product.productDescription}</TableCell>
+                    <TableCell>{(product.productPriceCurrency === 0 ? 'USD' : product.productPriceCurrency === 1 ? 'VND' : null) ?? 'Unknown'}</TableCell>
+                    <TableCell>
+                      {product.productImgPath ? (
+                        <img
+                          src={product.productImgPath}
+                          alt={`${product.productName}`}
+                          style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        'No Image'
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {product.productLogoPath ? (
+                        <img
+                          src={product.productLogoPath}
+                          alt={`${product.productName} logo`}
+                          style={{ width: '30px', height: '30px', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        'No Logo'
+                      )}
+                    </TableCell>
                     <TableCell sx={{ display: 'flex', gap: 1 }}>
                       <Button
                         variant="outlined"
@@ -339,6 +405,50 @@ const MyProduct = () => {
                 error={!!validationErrors.productDescription}
                 helperText={validationErrors.productDescription}
               />
+              <TextField
+                margin="dense"
+                id="productPriceCurrency"
+                name="productPriceCurrency"
+                label="Product Price Currency"
+                select
+                fullWidth
+                variant="outlined"
+                value={newProduct.productPriceCurrency}
+                onChange={handleInputChange}
+              >
+                <MenuItem value={0}>USD</MenuItem>
+                <MenuItem value={1}>VND</MenuItem>
+              </TextField>
+              <TextField
+                autoFocus
+                margin="dense"
+                name="productImgPath"
+                label="Image"
+                type="text"
+                fullWidth
+                variant="outlined"
+                value={newProduct.productImgPath}
+                onChange={handleInputChange}
+                sx={{ mb: 2 }}
+                required
+                error={!!validationErrors.productImgPath}
+                helperText={validationErrors.productImgPath}
+              />
+              <TextField
+                autoFocus
+                margin="dense"
+                name="productLogoPath"
+                label="Logo"
+                type="text"
+                fullWidth
+                variant="outlined"
+                value={newProduct.productLogoPath}
+                onChange={handleInputChange}
+                sx={{ mb: 2 }}
+                required
+                error={!!validationErrors.productLogoPath}
+                helperText={validationErrors.productLogoPath}
+              />
             </DialogContent>
             <DialogActions>
               <Button onClick={handleCloseAddDialog}>Cancel</Button>
@@ -377,6 +487,45 @@ const MyProduct = () => {
                 error={!!validationErrors.productDescription}
                 helperText={validationErrors.productDescription}
               />
+              <TextField
+                margin="dense"
+                name="productPriceCurrency"
+                label="Product Price Currency"
+                select
+                fullWidth
+                variant="outlined"
+                value={productToEdit?.productPriceCurrency || ''}
+                onChange={handleEditInputChange}
+              >
+                <MenuItem value={0}>USD</MenuItem>
+                <MenuItem value={1}>VND</MenuItem>
+              </TextField>
+              <TextField
+                margin="dense"
+                name="productImgPath"
+                label="Image"
+                type="text"
+                fullWidth
+                variant="outlined"
+                value={productToEdit?.productImgPath || ''}
+                onChange={handleEditInputChange}
+                required
+                error={!!validationErrors.productImgPath}
+                helperText={validationErrors.productImgPath}
+              />
+              <TextField
+                margin="dense"
+                name="productLogoPath"
+                label="Logo"
+                type="text"
+                fullWidth
+                variant="outlined"
+                value={productToEdit?.productLogoPath || ''}
+                onChange={handleEditInputChange}
+                required
+                error={!!validationErrors.productLogoPath}
+                helperText={validationErrors.productLogoPath}
+              />
             </DialogContent>
             <DialogActions>
               <Button onClick={handleCloseEditDialog}>Cancel</Button>
@@ -393,7 +542,7 @@ const MyProduct = () => {
               <Button onClick={handleCloseConfirmDialog}>Cancel</Button>
               <Button onClick={handleDeleteProduct} color="error">
                 Delete
-              </Button>
+              </Button>a
             </DialogActions>
           </Dialog>
         </>
