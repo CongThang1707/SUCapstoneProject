@@ -23,7 +23,8 @@ import {
   InputAdornment,
   Box,
   Typography,
-  Grid
+  Grid,
+  MenuItem
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { AddCircleOutlined, Visibility, Delete } from '@mui/icons-material';
@@ -39,7 +40,10 @@ const UtilitiesProduct = () => {
   const [newProductData, setNewProductData] = useState({
     categoryId: '',
     productName: '',
-    productDescription: ''
+    productDescription: '',
+    productPriceCurrency: '',
+    productImgPath: '',
+    productLogoPath: ''
   });
   const [filter, setFilter] = useState('');
   const [categoryMap, setCategoryMap] = useState({});
@@ -47,48 +51,62 @@ const UtilitiesProduct = () => {
   const [validationErrors, setValidationErrors] = useState({});
   const [productsByCategory, setProductsByCategory] = useState({});
 
-  // Function to validate new product data
+
   const validateNewProductData = () => {
     const errors = {};
+  
+
     if (!newProductData.categoryId) {
       errors.categoryId = 'Category is required';
     }
+
     if (!newProductData.productName.trim()) {
       errors.productName = 'Product name is required';
+    } else if (newProductData.productName.trim().length > 100) {
+      errors.productName = 'Product name must be 100 characters or less';
     }
+  
     if (!newProductData.productDescription.trim()) {
       errors.productDescription = 'Product description is required';
+    } else if (newProductData.productDescription.trim().length > 200) {
+      errors.productDescription = 'Product description must be 200 characters or less';
     }
-
-    // Check for duplicate product in the selected category
+  
     const categoryProducts = productsByCategory[newProductData.categoryId] || [];
     const duplicateProduct = categoryProducts.find((product) => product.productName === newProductData.productName);
-
+  
     if (duplicateProduct) {
       errors.productName = 'A product with this name already exists in the selected category.';
     }
-
+  
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
-
   const handleAddProduct = async () => {
     if (!validateNewProductData()) {
-      return; // Stop if validation fails
+      return; 
     }
-
     try {
-      const response = await axios.post('https://3.1.81.96/api/Products', newProductData);
+      const payload = {
+        ...newProductData,
+        productPriceCurrency: parseFloat(newProductData.productPriceCurrency)
+      };
+
+      console.log('Payload being sent to API:', payload);
+      const response = await axios.post('https://3.1.81.96/api/Products', payload);
       if (response.status === 201) {
-        // Successfully created new product
+
         setNewProductData({
           categoryID: '',
           productName: '',
-          productDescription: ''
+          productDescription: '',
+          productPriceCurrency: '',
+          productImgPath: '',
+          productLogoPath: ''
         });
         setShowAddProductDialog(false);
 
-        // Fetch updated product and category data
+        
         const [updatedProductResponse, categoryResponse] = await Promise.all([
           axios.get('https://3.1.81.96/api/Products?pageNumber=1&pageSize=100'),
           axios.get('https://3.1.81.96/api/Categories?pageNumber=1&pageSize=100')
@@ -117,7 +135,10 @@ const UtilitiesProduct = () => {
         setNewProductData({
           categoryId: '',
           productName: '',
-          productDescription: ''
+          productDescription: '',
+          productPriceCurrency: '',
+          productImgPath: '',
+          productLogoPath: ''
         });
         setShowAddProductDialog(false);
 
@@ -130,8 +151,21 @@ const UtilitiesProduct = () => {
         setError(errorMessage); // Set the error message for display
       }
     } catch (error) {
-      console.error('Error creating product:', error);
-      setError(`An error occurred: ${error.message}`); // Display a generic error message
+      console.error('Error creating product:', error.response?.data || error.message);
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        console.error('Error data:', error.response.data);
+        console.error('Error status:', error.response.status);
+        console.error('Error headers:', error.response.headers);
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.error('Error request:', error.request);
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        console.error('Error message:', error.message);
+      }
+      setError(`An error occurred: ${error.response?.data?.error || error.message}`); // Display a generic error message
     }
   };
 
@@ -154,7 +188,7 @@ const UtilitiesProduct = () => {
         const [productResponse, categoryResponse, brandResponse] = await Promise.all([
           axios.get('https://3.1.81.96/api/Products?pageNumber=1&pageSize=100'),
           axios.get('https://3.1.81.96/api/Categories?pageNumber=1&pageSize=100'),
-          axios.get('https://3.1.81.96/api/Brands?pageNumber=1&pageSize=100') // Assuming you have an endpoint for brands
+          axios.get('https://3.1.81.96/api/Brands?pageNumber=1&pageSize=100')
         ]);
 
         if (!productResponse.data || !categoryResponse.data || !brandResponse.data) {
@@ -162,18 +196,16 @@ const UtilitiesProduct = () => {
         }
 
         const categoryOptions = categoryResponse.data.map((category) => {
-          const brand = brandResponse.data.find((b) => b.brandId === category.brandId); // Adjust property names accordingly
+          const brand = brandResponse.data.find((b) => b.brandId === category.brandId);
           return {
             id: category.categoryId,
             name: `${category.categoryName} - ${brand ? brand.brandName : 'Unknown Brand'}`
           };
         });
         setCategoryOptions(categoryOptions);
-
-        // Create a map of categoryId to categoryName (correct property name)
         const categoryMap = {};
         categoryResponse.data.forEach((category) => {
-          categoryMap[category.categoryId] = category.categoryName; // Use categoryId here
+          categoryMap[category.categoryId] = category.categoryName;
         });
         setCategoryMap(categoryMap);
 
@@ -290,7 +322,11 @@ const UtilitiesProduct = () => {
                 <Table stickyHeader aria-label="sticky table">
                   <TableHead>
                     <TableRow>
-                      <TableCell>Product Name</TableCell>
+                      <TableCell>Name</TableCell>
+                      <TableCell>Description</TableCell>
+                      <TableCell>Price Currency</TableCell>
+                      <TableCell>Image</TableCell>
+                      <TableCell>Logo</TableCell>
                       <TableCell>Category</TableCell>
                       <TableCell>Actions</TableCell>
                     </TableRow>
@@ -299,6 +335,32 @@ const UtilitiesProduct = () => {
                     {filteredProductData.map((product) => (
                       <TableRow key={product.productId}>
                         <TableCell>{product.productName}</TableCell>
+                        <TableCell>{product.productDescription}</TableCell>
+                        <TableCell>
+                          {(product.productPriceCurrency === 0 ? 'USD' : product.productPriceCurrency === 1 ? 'VND' : null) ?? 'Unknown'}
+                        </TableCell>
+                        <TableCell>
+                          {product.productImgPath ? (
+                            <img
+                              src={product.productImgPath}
+                              alt={`${product.productName}`}
+                              style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+                            />
+                          ) : (
+                            'No Image'
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {product.productLogoPath ? (
+                            <img
+                              src={product.productLogoPath}
+                              alt={`${product.productName} logo`}
+                              style={{ width: '30px', height: '30px', objectFit: 'cover' }}
+                            />
+                          ) : (
+                            'No Logo'
+                          )}
+                        </TableCell>
                         <TableCell>{categoryMap[product.categoryId]}</TableCell>
                         <TableCell>
                           <Button color="primary" onClick={() => handleViewDetails(product)} startIcon={<Visibility />} sx={{ mr: 1 }}>
@@ -374,13 +436,54 @@ const UtilitiesProduct = () => {
             error={!!validationErrors.productDescription}
             helperText={validationErrors.productDescription}
           />
+          <TextField
+            margin="dense"
+            id="productPriceCurrency"
+            name="productPriceCurrency"
+            label="Product Price Currency"
+            select
+            fullWidth
+            variant="outlined"
+            value={newProductData.productPriceCurrency}
+            onChange={handleChange}
+          >
+            <MenuItem value={0}>USD</MenuItem>
+            <MenuItem value={1}>VND</MenuItem>
+          </TextField>
+          <TextField
+            margin="dense"
+            id="productImgPath"
+            name="productImgPath"
+            label="Product Image"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={newProductData.productImgPath}
+            onChange={handleChange}
+            error={!!validationErrors.productImgPath}
+            helperText={validationErrors.productImgPath}
+          />
+          <TextField
+            margin="dense"
+            id="productLogoPath"
+            name="productLogoPath"
+            label="Product Logo"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={newProductData.productLogoPath}
+            onChange={handleChange}
+            error={!!validationErrors.productLogoPath}
+            helperText={validationErrors.productLogoPath}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseAddProductDialog}>Cancel</Button>
           <Button onClick={handleAddProduct} color="primary">
-            Add Product
+            Add
           </Button>
         </DialogActions>
+
       </Dialog>
 
       <Snackbar open={openSnackbar} autoHideDuration={3000} onClose={() => setOpenSnackbar(false)}>
