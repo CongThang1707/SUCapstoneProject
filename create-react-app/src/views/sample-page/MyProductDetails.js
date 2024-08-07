@@ -80,15 +80,29 @@ const MyProductDetails = () => {
     if (!validateNewSizePriceData()) {
       return;
     }
+
+    const existingSizeTypes = productSizePrices.map(sizePrice => sizePrice.productSizeType);
+    const newSizeType = parseInt(newSizePriceData.productSizeType, 10);
+
+    if (newSizeType === 3 && existingSizeTypes.some(type => type !== 3)) {
+      setSnackbarMessage('Cannot add Normal size when "S", "M", or "L" sizes exist.');
+      setOpenSnackbar(true);
+      return;
+    } else if (newSizeType !== 3 && existingSizeTypes.includes(3)) {
+      setSnackbarMessage(`Cannot add "${getProductSizeType(newSizeType)}" size when Normal size exists.`);
+      setOpenSnackbar(true);
+      return;
+    }
+
     try {
       const response = await axios.post('https://3.1.81.96/api/ProductSizePrices', {
         productId: productData.productId,
-        productSizeType: parseInt(newSizePriceData.productSizeType, 10),
+        productSizeType: newSizeType,
         price: parseFloat(newSizePriceData.price)
       });
 
       if (response.status === 201) {
-        setProductSizePrices((prevData) => [...prevData, response.data]); // Update as an array
+        setProductSizePrices((prevData) => [...prevData, response.data]);
         setOpenSnackbar(true);
         setSnackbarMessage('Size price added successfully!');
         setShowAddSizePriceDialog(false);
