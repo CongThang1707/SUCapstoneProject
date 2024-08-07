@@ -24,7 +24,9 @@ import {
   Box,
   Typography,
   Grid,
-  MenuItem
+  MenuItem,
+  Input,
+  FormHelperText
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { AddCircleOutlined, Visibility, Delete } from '@mui/icons-material';
@@ -50,11 +52,11 @@ const UtilitiesProduct = () => {
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [validationErrors, setValidationErrors] = useState({});
   const [productsByCategory, setProductsByCategory] = useState({});
-
+  const [productImgPath, setProductImgPath] = useState(false);
+  const [productLogoPath, setProductLogoPath] = useState(false);
 
   const validateNewProductData = () => {
     const errors = {};
-  
 
     if (!newProductData.categoryId) {
       errors.categoryId = 'Category is required';
@@ -65,37 +67,38 @@ const UtilitiesProduct = () => {
     } else if (newProductData.productName.trim().length > 100) {
       errors.productName = 'Product name must be 100 characters or less';
     }
-  
+
     if (!newProductData.productDescription.trim()) {
       errors.productDescription = 'Product description is required';
     } else if (newProductData.productDescription.trim().length > 200) {
       errors.productDescription = 'Product description must be 200 characters or less';
     }
-  
+
     const categoryProducts = productsByCategory[newProductData.categoryId] || [];
     const duplicateProduct = categoryProducts.find((product) => product.productName === newProductData.productName);
-  
+
     if (duplicateProduct) {
       errors.productName = 'A product with this name already exists in the selected category.';
     }
-  
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
   const handleAddProduct = async () => {
     if (!validateNewProductData()) {
-      return; 
+      return;
     }
     try {
       const payload = {
         ...newProductData,
-        productPriceCurrency: parseFloat(newProductData.productPriceCurrency)
+        productPriceCurrency: parseFloat(newProductData.productPriceCurrency),
+        productImgPath: productImgPath,
+        productLogoPath: productLogoPath
       };
 
       console.log('Payload being sent to API:', payload);
       const response = await axios.post('https://3.1.81.96/api/Products', payload);
       if (response.status === 201) {
-
         setNewProductData({
           categoryID: '',
           productName: '',
@@ -106,7 +109,6 @@ const UtilitiesProduct = () => {
         });
         setShowAddProductDialog(false);
 
-        
         const [updatedProductResponse, categoryResponse] = await Promise.all([
           axios.get('https://3.1.81.96/api/Products?pageNumber=1&pageSize=100'),
           axios.get('https://3.1.81.96/api/Categories?pageNumber=1&pageSize=100')
@@ -172,6 +174,7 @@ const UtilitiesProduct = () => {
   const handleChange = (event) => {
     const { name, value } = event.target;
     setNewProductData((prevState) => ({ ...prevState, [name]: value }));
+    setValidationErrors((prevErrors) => ({ ...prevErrors, [name]: '' }));
   };
 
   const handleCloseAddProductDialog = () => {
@@ -233,11 +236,9 @@ const UtilitiesProduct = () => {
     try {
       const response = await axios.delete(`https://3.1.81.96/api/Products/${productId}`);
       if (response.status === 200) {
-        // Successfully deleted product
         const updatedProductData = productData.filter((product) => product.productId !== productId);
         setProductData(updatedProductData);
 
-        // Update productsByCategory
         const updatedProductsByCategory = updatedProductData.reduce((acc, product) => {
           if (!acc[product.categoryId]) acc[product.categoryId] = [];
           acc[product.categoryId].push(product);
@@ -267,6 +268,53 @@ const UtilitiesProduct = () => {
     const categoryIdMatch = product.categoryName?.toLowerCase().includes(filter.toLowerCase());
     return productNameMatch || categoryIdMatch;
   });
+
+  const handleImageUpload = async (event) => {
+    const userId = 469;
+    const file = event.target.files[0];
+    const formData = new FormData();
+    const preset_key = 'xdm798lx';
+    const folder = `users/${userId}`;
+    const tags = `${userId}`;
+    if (file) {
+      formData.append('file', file);
+      formData.append('upload_preset', preset_key);
+      formData.append('tags', tags);
+      formData.append('folder', folder);
+      axios.post('https://api.cloudinary.com/v1_1/dchov8fes/image/upload', formData).then(async (result) => {
+        const imageUrl = result.data.secure_url;
+        setProductImgPath(imageUrl);
+        setNewProductData((prevProduct) => ({
+          ...prevProduct,
+          productImgPath: imageUrl
+        }));
+        console.log('Result hihi: ', result.data.secure_url);
+      });
+    }
+  };
+
+  const handleImageUploadLogo = async (event) => {
+    const userId = 469;
+    const file = event.target.files[0];
+    const formData = new FormData();
+    const preset_key = 'xdm798lx';
+    const folder = `users/${userId}`;
+    const tags = `${userId}`;
+    if (file) {
+      formData.append('file', file);
+      formData.append('upload_preset', preset_key);
+      formData.append('tags', tags);
+      formData.append('folder', folder);
+      axios.post('https://api.cloudinary.com/v1_1/dchov8fes/image/upload', formData).then(async (result) => {
+        const imageUrl = result.data.secure_url;
+        setProductLogoPath(imageUrl);
+        setNewProductData((prevProduct) => ({
+          ...prevProduct,
+          productLogoPath: imageUrl
+        }));
+      });
+    }
+  };
 
   return (
     <Box sx={{ flexGrow: 1, p: 3 }}>
@@ -450,7 +498,7 @@ const UtilitiesProduct = () => {
             <MenuItem value={0}>USD</MenuItem>
             <MenuItem value={1}>VND</MenuItem>
           </TextField>
-          <TextField
+          {/* <TextField
             margin="dense"
             id="productImgPath"
             name="productImgPath"
@@ -462,8 +510,18 @@ const UtilitiesProduct = () => {
             onChange={handleChange}
             error={!!validationErrors.productImgPath}
             helperText={validationErrors.productImgPath}
+          /> */}
+          <Input
+            type="file"
+            name="productImgPath"
+            accept="image/*"
+            onChange={handleImageUpload}
+            error={!!validationErrors.productImgPath}
+            fullWidth
+            margin="dense"
           />
-          <TextField
+          <FormHelperText error={!!validationErrors.productImgPath}>{validationErrors.productImgPath}</FormHelperText>
+          {/* <TextField
             margin="dense"
             id="productLogoPath"
             name="productLogoPath"
@@ -475,7 +533,17 @@ const UtilitiesProduct = () => {
             onChange={handleChange}
             error={!!validationErrors.productLogoPath}
             helperText={validationErrors.productLogoPath}
+          /> */}
+          <Input
+            type="file"
+            name="productLogoPath"
+            accept="image/*"
+            onChange={handleImageUploadLogo}
+            error={!!validationErrors.productLogoPath}
+            fullWidth
+            margin="dense"
           />
+          <FormHelperText error={!!validationErrors.productLogoPath}>{validationErrors.productLogoPath}</FormHelperText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseAddProductDialog}>Cancel</Button>
@@ -483,7 +551,6 @@ const UtilitiesProduct = () => {
             Add
           </Button>
         </DialogActions>
-
       </Dialog>
 
       <Snackbar open={openSnackbar} autoHideDuration={3000} onClose={() => setOpenSnackbar(false)}>

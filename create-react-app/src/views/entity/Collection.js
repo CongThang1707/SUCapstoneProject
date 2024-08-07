@@ -18,41 +18,45 @@ import {
   TextField,
   InputAdornment,
   Snackbar,
-  MenuItem,
-  IconButton,
-  Menu,
-  ListItemIcon,
-  ListItemText
+  CardMedia,
+  FormHelperText,
+  Input
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { AddCircleOutlined, Edit, Delete } from '@mui/icons-material';
+import { AddCircleOutlined, Edit, Delete, Visibility } from '@mui/icons-material';
 import SearchIcon from '@mui/icons-material/Search';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import CancelIcon from '@mui/icons-material/Cancel';
-import SaveIcon from '@mui/icons-material/Save';
 
 const EntityCollection = () => {
   const [collectionData, setCollectionData] = useState([]);
   const [brandData, setBrandData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [showAddCollectionDialog, setShowAddCollectionDialog] = useState(false);
+  const [showEditCollectionDialog, setShowEditCollectionDialog] = useState(false);
+  const navigate = useNavigate();
   const [newCollectionData, setNewCollectionData] = useState({
     brandId: '',
     collectionName: '',
-    collectionDescription: ''
+    collectionDescription: '',
+    collectionBackgroundImgPath: ''
   });
   const [filter, setFilter] = useState('');
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [selectedCollection, setSelectedCollection] = useState(null); // To track the collection to delete
-  const open = Boolean(anchorEl); // To track the menu to delete
-  const [showEditCollectionDialog, setShowEditCollectionDialog] = useState(false);
-  const [editingCollection, setEditingCollection] = useState(null);
-  const filteredCollections = collectionData.filter((collection) => collection.collectionName.toLowerCase().includes(filter.toLowerCase()));
+  const [editingCollection, setEditingCollection] = useState({
+    collectionId: '',
+    brandId: '',
+    collectionName: '',
+    collectionDescription: '',
+    collectionBackgroundImgPath: ''
+  });
+  const filteredCollectionData = collectionData.filter((collection) => {
+    const collectionNameMatch = collection.collectionName?.toLowerCase().includes(filter.toLowerCase());
+    const brandIdMatch = collection.brandId?.toString().includes(filter.toLowerCase());
+    return collectionNameMatch || brandIdMatch;
+  });
   const [validationErrors, setValidationErrors] = useState({});
+  const [collectionBackgroundImgPath, setCollectionBackgroundImgPath] = useState(false);
 
   const validateNewCollectionData = () => {
     const errors = {};
@@ -65,36 +69,47 @@ const EntityCollection = () => {
     if (!newCollectionData.collectionDescription.trim()) {
       errors.collectionDescription = 'Collection description is required';
     }
+    if (!newCollectionData.collectionBackgroundImgPath) {
+      errors.collectionBackgroundImgPath = 'Collection background image is required';
+    }
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
-  const handleEditCollection = (collection) => {
-    setEditingCollection(collection);
-    setShowEditCollectionDialog(true);
+  const validateEditCollectionData = () => {
+    const errors = {};
+    if (!editingCollection.collectionName.trim()) {
+      errors.collectionName = 'Collection name is required';
+    }
+    if (!editingCollection.collectionDescription.trim()) {
+      errors.collectionDescription = 'Collection description is required';
+    }
+    if (!editingCollection.collectionBackgroundImgPath) {
+      errors.collectionBackgroundImgPath = 'Collection background image is required';
+    }
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleCloseEditCollectionDialog = () => {
     setEditingCollection(null);
     setShowEditCollectionDialog(false);
-    handleClose();
+    setValidationErrors({});
   };
 
-  const handleSaveEdit = async (collectionId) => {
+  const handleSaveEdit = async () => {
+    if (!validateEditCollectionData()) {
+      return;
+    }
     try {
-      const updatedCollection = {
-        collectionName: editingCollection.collectionName,
-        collectionDescription: editingCollection.collectionDescription
-      };
-
-      const response = await axios.put(`https://3.1.81.96/api/Collections/${collectionId}`, updatedCollection, {
-        headers: { 'Content-Type': 'application/json' }
+      const response = await axios.put(`https://3.1.81.96/api/Collections/${editingCollection.collectionId}`, {
+        ...editingCollection,
+        collectionBackgroundImgPath: collectionBackgroundImgPath
       });
 
       if (response.status === 200) {
-        setCollectionData((prevData) =>
-          prevData.map((collection) => (collection.collectionId === collectionId ? response.data : collection))
-        );
+        setShowEditCollectionDialog(false);
+        fetchData();
         setOpenSnackbar(true);
         setSnackbarMessage('Collection updated successfully!');
       } else {
@@ -104,9 +119,13 @@ const EntityCollection = () => {
     } catch (error) {
       console.error('Error updating collection:', error);
       setError('An error occurred while updating the collection.');
-    } finally {
-      handleCloseEditCollectionDialog();
     }
+  };
+
+  const handleEditClick = (collection) => {
+    setEditingCollection(collection);
+    setShowEditCollectionDialog(true);
+    setCollectionBackgroundImgPath(collection.collectionBackgroundImgPath);
   };
 
   const handleAddCollectionChange = (event) => {
@@ -126,7 +145,10 @@ const EntityCollection = () => {
       return;
     }
     try {
-      const response = await axios.post('https://3.1.81.96/api/Collections', newCollectionData);
+      const response = await axios.post('https://3.1.81.96/api/Collections', {
+        ...newCollectionData,
+        collectionBackgroundImgPath: collectionBackgroundImgPath
+      });
       if (response.status === 201) {
         setNewCollectionData({ brandId: '', collectionName: '', collectionDescription: '' });
         setShowAddCollectionDialog(false);
@@ -149,25 +171,26 @@ const EntityCollection = () => {
     setValidationErrors({});
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      setError(null);
+  const fetchData = async () => {
+    setIsLoading(true);
+    setError(null);
 
-      try {
-        const [collectionResponse, brandResponse] = await Promise.all([
-          axios.get('https://3.1.81.96/api/Collections/ProductGroup'),
-          axios.get('https://3.1.81.96/api/Brands')
-        ]);
-        setCollectionData(collectionResponse.data);
-        setBrandData(brandResponse.data);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setError(error.message || 'An error occurred while fetching data.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    try {
+      const [collectionResponse, brandResponse] = await Promise.all([
+        axios.get('https://3.1.81.96/api/Collections/ProductGroup'),
+        axios.get('https://3.1.81.96/api/Brands')
+      ]);
+      setCollectionData(collectionResponse.data);
+      setBrandData(brandResponse.data);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setError(error.message || 'An error occurred while fetching data.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -175,21 +198,11 @@ const EntityCollection = () => {
     navigate('/collection-details', { state: { collectionData: collection } });
   };
 
-  const handleClick = (event, collection) => {
-    event.stopPropagation(); // Stop event propagation
-    setAnchorEl(event.currentTarget);
-    setSelectedCollection(collection);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleDelete = async () => {
+  const handleDelete = async (collectionId) => {
     try {
-      const response = await axios.delete(`https://3.1.81.96/api/Collections/${selectedCollection.collectionId}`);
+      const response = await axios.delete(`https://3.1.81.96/api/Collections/${collectionId}`);
       if (response.status === 200) {
-        setCollectionData((prevData) => prevData.filter((collection) => collection.collectionId !== selectedCollection.collectionId));
+        setCollectionData(collectionData.filter((collection) => collection.collectionId !== collectionId));
         setOpenSnackbar(true);
         setSnackbarMessage('Collection deleted successfully!');
       } else {
@@ -199,23 +212,54 @@ const EntityCollection = () => {
     } catch (error) {
       console.error('Error deleting collection:', error);
       setError(`Error: ${error.message}`);
-    } finally {
-      handleClose();
     }
+  };
+
+  const handleImageUpload = async (event) => {
+    const userId = 469;
+    const file = event.target.files[0];
+    const formData = new FormData();
+    const preset_key = 'xdm798lx';
+    const folder = `users/${userId}`;
+    const tags = `${userId}`;
+    if (file) {
+      // const url = URL.createObjectURL(file);
+      formData.append('file', file);
+      formData.append('upload_preset', preset_key);
+      formData.append('tags', tags);
+      formData.append('folder', folder);
+      axios.post('https://api.cloudinary.com/v1_1/dchov8fes/image/upload', formData).then(async (result) => {
+        const imageUrl = result.data.secure_url;
+        setCollectionBackgroundImgPath(imageUrl);
+        setNewCollectionData((prevCollectionData) => ({
+          ...prevCollectionData,
+          collectionBackgroundImgPath: imageUrl
+        }));
+        setEditingCollection((prevCollectionData) => ({
+          ...prevCollectionData,
+          collectionBackgroundImgPath: imageUrl
+        }));
+        console.log('Result hihi: ', result.data.secure_url);
+      });
+    }
+  };
+
+  const handleEditChange = (event) => {
+    const { name, value } = event.target;
+    setEditingCollection((prevState) => ({ ...prevState, [name]: value }));
+    setValidationErrors((prevErrors) => ({ ...prevErrors, [name]: '' }));
   };
 
   return (
     <Box sx={{ flexGrow: 1, p: 3 }}>
       <Grid container spacing={3}>
         <Grid item xs={12}>
-          <MainCard title={<Typography variant="h5">Collections</Typography>}>
+          <MainCard title={<Typography variant="h5">Collection Table</Typography>}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <TextField
-                label="Search"
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
                 variant="outlined"
-                fullWidth
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -223,7 +267,14 @@ const EntityCollection = () => {
                     </InputAdornment>
                   )
                 }}
-                sx={{ mr: 2, flexGrow: 1 }}
+                sx={{
+                  width: '500px',
+                  mr: 60,
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    paddingRight: 1
+                  }
+                }}
               />
               <Button
                 variant="contained"
@@ -235,217 +286,177 @@ const EntityCollection = () => {
                   boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
                   textTransform: 'none',
                   fontWeight: 600,
-                  px: 4, // Increase horizontal padding further
+                  px: 2,
                   py: 1.5,
-                  whiteSpace: 'nowrap' // Prevent text from wrapping
+                  whiteSpace: 'nowrap'
                 }}
+                size="small"
               >
                 Add Collection
               </Button>
             </Box>
             {isLoading ? (
-              <CircularProgress />
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+                <CircularProgress />
+              </div>
             ) : error ? (
-              <Typography variant="body1" color="error">
-                {error}
-              </Typography>
+              <p>{error}</p>
             ) : (
               <Grid container spacing={3}>
-                {filteredCollections.map((collection) => (
-                  <Grid item xs={12} sm={6} md={4} key={collection.collectionId}>
-                    <Card
-                      elevation={4} // Add elevation for a raised effect
-                      sx={{
-                        borderRadius: 2, // Slightly rounded corners
-                        transition: 'box-shadow 0.3s ease', // Add a smooth transition
-                        '&:hover': {
-                          boxShadow: 6 // Increase the elevation on hover
-                        }
-                      }}
-                    >
+                {filteredCollectionData.map((collection) => (
+                  <Grid item xs={12} sm={6} md={4} lg={3} key={collection.collectionId}>
+                    <Card sx={{ border: '1px solid #ccc', borderRadius: 2, boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)' }}>
+                      <CardMedia
+                        component="img"
+                        height="140"
+                        image={collection.collectionBackgroundImgPath}
+                        alt={collection.collectionName}
+                      />
                       <CardContent>
-                        {editingCollection === collection.collectionId ? (
-                          <>
-                            <TextField
-                              label="Collection Name"
-                              name="collectionName"
-                              value={collection.collectionName}
-                              onChange={(e) => handleChange(e, collection.collectionId)}
-                              fullWidth
-                              margin="normal"
-                            />
-                            <TextField
-                              label="Collection Description"
-                              name="collectionDescription"
-                              value={collection.collectionDescription}
-                              onChange={(e) => handleChange(e, collection.collectionId)}
-                              fullWidth
-                              margin="normal"
-                            />
-                          </>
-                        ) : (
-                          <>
-                            <Typography gutterBottom variant="h5" component="div">
-                              {collection.collectionName}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {collection.collectionDescription}
-                            </Typography>
-                          </>
-                        )}
+                        <Typography gutterBottom variant="h5" component="div">
+                          {collection.collectionName}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {collection.collectionDescription}
+                        </Typography>
                       </CardContent>
-                      <CardActions sx={{ justifyContent: 'space-between' }}>
-                        <IconButton aria-label="settings" onClick={(event) => handleClick(event, collection)}>
-                          <MoreVertIcon />
-                        </IconButton>
-                        <Button size="small" color="primary" onClick={() => handleViewDetails(collection)}>
-                          View Details
+                      <CardActions>
+                        <Button size="small" color="info" onClick={() => handleViewDetails(collection)} startIcon={<Visibility />}>
+                          View
                         </Button>
-                        {editingCollection === collection.collectionId ? (
-                          <>
-                            <Button variant="outlined" color="primary" onClick={handleCloseEditCollectionDialog} startIcon={<CancelIcon />}>
-                              Cancel
-                            </Button>
-                            <Button
-                              variant="contained"
-                              color="primary"
-                              onClick={() => handleSaveEdit(collection.collectionId)}
-                              startIcon={<SaveIcon />}
-                            >
-                              Save
-                            </Button>
-                          </>
-                        ) : (
-                          <div></div>
-                        )}
+                        <Button size="small" color="success" onClick={() => handleEditClick(collection)} startIcon={<Edit />}>
+                          Edit
+                        </Button>
+                        <Button size="small" color="error" onClick={() => handleDelete(collection.collectionId)} startIcon={<Delete />}>
+                          Delete
+                        </Button>
                       </CardActions>
                     </Card>
                   </Grid>
                 ))}
               </Grid>
             )}
-            <Snackbar open={openSnackbar} autoHideDuration={3000} onClose={() => setOpenSnackbar(false)} message={snackbarMessage} />
-            <Dialog open={showAddCollectionDialog} onClose={handleCloseAddCollectionDialog}>
-              <DialogTitle>Add New Collection</DialogTitle>
-              <DialogContent>
-                <DialogContentText>Please enter the details of the new collection.</DialogContentText>
-                <TextField
-                  autoFocus
-                  margin="dense"
-                  id="brand-select"
-                  name="brandId"
-                  type="text"
-                  label="Brand Name"
-                  fullWidth
-                  variant="outlined"
-                  value={newCollectionData.brandId}
-                  onChange={handleAddCollectionChange}
-                  select
-                  SelectProps={{ native: true }}
-                  required
-                  error={!!validationErrors.brandId}
-                  helperText={validationErrors.brandId}
-                >
-                  <option value="" disabled></option>
-                  {brandData.map((brand) => (
-                    <option key={brand.brandId} value={brand.brandId}>
-                      {brand.brandName}
-                    </option>
-                  ))}
-                </TextField>
-                <TextField
-                  margin="dense"
-                  name="collectionName"
-                  label="Collection Name"
-                  type="text"
-                  fullWidth
-                  variant="outlined"
-                  value={newCollectionData.collectionName}
-                  onChange={handleAddCollectionChange}
-                  required
-                  error={!!validationErrors.collectionName}
-                  helperText={validationErrors.collectionName}
-                />
-                <TextField
-                  margin="dense"
-                  name="collectionDescription"
-                  label="Collection Description"
-                  type="text"
-                  fullWidth
-                  variant="outlined"
-                  value={newCollectionData.collectionDescription}
-                  onChange={handleAddCollectionChange}
-                  required
-                  error={!!validationErrors.collectionDescription}
-                  helperText={validationErrors.collectionDescription}
-                />
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={handleCloseAddCollectionDialog}>Cancel</Button>
-                <Button onClick={handleAddCollection} variant="contained">
-                  Add Collection
-                </Button>
-              </DialogActions>
-            </Dialog>
-
-            <Menu
-              id="menu-actions"
-              anchorEl={anchorEl}
-              open={open}
-              onClose={handleClose}
-              MenuListProps={{ 'aria-labelledby': 'basic-button' }}
-            >
-              <MenuItem onClick={() => handleEditCollection(selectedCollection)}>
-                <ListItemIcon>
-                  <Edit fontSize="small" />
-                </ListItemIcon>
-                <ListItemText>Edit</ListItemText>
-              </MenuItem>
-              <MenuItem onClick={handleDelete}>
-                <ListItemIcon>
-                  <Delete fontSize="small" color="error" />
-                </ListItemIcon>
-                <ListItemText primary={<Typography color="error">Delete</Typography>} />
-              </MenuItem>
-            </Menu>
-
-            <Dialog open={showEditCollectionDialog} onClose={handleCloseEditCollectionDialog}>
-              <DialogTitle>Edit Collection</DialogTitle>
-              <DialogContent>
-                <DialogContentText>Make changes to the collection details:</DialogContentText>
-                <TextField
-                  autoFocus
-                  margin="dense"
-                  name="collectionName"
-                  label="Collection Name"
-                  type="text"
-                  fullWidth
-                  variant="standard"
-                  value={editingCollection?.collectionName || ''}
-                  onChange={(e) => setEditingCollection((prevCollection) => ({ ...prevCollection, collectionName: e.target.value }))}
-                />
-                <TextField
-                  autoFocus
-                  margin="dense"
-                  name="collectionDescription"
-                  label="Collection Description"
-                  type="text"
-                  fullWidth
-                  variant="standard"
-                  value={editingCollection?.collectionDescription || ''}
-                  onChange={(e) => setEditingCollection((prevCollection) => ({ ...prevCollection, collectionDescription: e.target.value }))}
-                />
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={handleCloseEditCollectionDialog}>Cancel</Button>
-                <Button onClick={() => handleSaveEdit(editingCollection?.collectionId)} variant="contained">
-                  Save
-                </Button>
-              </DialogActions>
-            </Dialog>
           </MainCard>
         </Grid>
       </Grid>
+
+      <Snackbar open={openSnackbar} autoHideDuration={3000} onClose={() => setOpenSnackbar(false)} message={snackbarMessage} />
+      <Dialog open={showAddCollectionDialog} onClose={handleCloseAddCollectionDialog}>
+        <DialogTitle>Add New Collection</DialogTitle>
+        <DialogContent>
+          <DialogContentText>Please enter the details of the new collection.</DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="brand-select"
+            name="brandId"
+            type="text"
+            label="Brand Name"
+            fullWidth
+            variant="outlined"
+            value={newCollectionData.brandId}
+            onChange={handleAddCollectionChange}
+            select
+            SelectProps={{ native: true }}
+            required
+            error={!!validationErrors.brandId}
+            helperText={validationErrors.brandId}
+          >
+            <option value="" disabled></option>
+            {brandData.map((brand) => (
+              <option key={brand.brandId} value={brand.brandId}>
+                {brand.brandName}
+              </option>
+            ))}
+          </TextField>
+          <TextField
+            margin="dense"
+            name="collectionName"
+            label="Collection Name"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={newCollectionData.collectionName}
+            onChange={handleAddCollectionChange}
+            required
+            error={!!validationErrors.collectionName}
+            helperText={validationErrors.collectionName}
+          />
+          <TextField
+            margin="dense"
+            name="collectionDescription"
+            label="Collection Description"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={newCollectionData.collectionDescription}
+            onChange={handleAddCollectionChange}
+            required
+            error={!!validationErrors.collectionDescription}
+            helperText={validationErrors.collectionDescription}
+          />
+          <Input
+            type="file"
+            name="collectionBackgroundImgPath"
+            accept="image/*"
+            onChange={handleImageUpload}
+            fullWidth
+            margin="dense"
+            error={!!validationErrors.collectionBackgroundImgPath}
+          />
+          <FormHelperText error>{validationErrors.collectionBackgroundImgPath}</FormHelperText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseAddCollectionDialog}>Cancel</Button>
+          <Button onClick={handleAddCollection} variant="contained">
+            Add Collection
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={showEditCollectionDialog} onClose={handleCloseEditCollectionDialog}>
+        <DialogTitle>Edit Collection</DialogTitle>
+        <DialogContent>
+          <DialogContentText>Make changes to the collection details:</DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            name="collectionName"
+            label="Collection Name"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={editingCollection?.collectionName || ''}
+            onChange={handleEditChange}
+          />
+          <TextField
+            autoFocus
+            margin="dense"
+            name="collectionDescription"
+            label="Collection Description"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={editingCollection?.collectionDescription || ''}
+            onChange={handleEditChange}
+          />
+          <Input
+            type="file"
+            name="collectionBackgroundImgPath"
+            accept="image/*"
+            onChange={handleImageUpload}
+            fullWidth
+            margin="dense"
+            error={!!validationErrors.collectionBackgroundImgPath}
+          />
+          <FormHelperText error>{validationErrors.collectionBackgroundImgPath}</FormHelperText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEditCollectionDialog}>Cancel</Button>
+          <Button onClick={handleSaveEdit} variant="contained">
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

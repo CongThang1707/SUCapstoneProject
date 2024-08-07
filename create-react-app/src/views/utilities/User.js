@@ -55,6 +55,7 @@ const UtilitiesBrandStaff = () => {
   const navigate = useNavigate();
   const [validationErrors, setValidationErrors] = useState({});
   const [filteredStores, setFilteredStores] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const validateNewUserData = () => {
     const errors = {};
@@ -296,13 +297,28 @@ const UtilitiesBrandStaff = () => {
     }
   };
 
+  const handleSearchInputChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const filteredBrandData = brandData.filter((staff) => staff.userName.toLowerCase().includes(searchTerm.toLowerCase()));
+
   return (
     <MainCard title={<Typography variant="h5">Brand Staff Table</Typography>}>
       <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
-          <Button variant="contained" color="primary" onClick={handleOpen}>
-            Add User
-          </Button>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <TextField
+              label="Search"
+              variant="outlined"
+              value={searchTerm}
+              onChange={handleSearchInputChange}
+              sx={{ marginBottom: '16px' }}
+            />
+            <Button variant="contained" color="primary" onClick={handleOpen}>
+              Add User
+            </Button>
+          </Box>
           {isLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
               <CircularProgress />
@@ -321,7 +337,7 @@ const UtilitiesBrandStaff = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {brandData.map((staff) => (
+                  {filteredBrandData.map((staff) => (
                     <TableRow key={staff.userId} hover>
                       <TableCell>{staff.userName}</TableCell>
                       <TableCell>{staff.email}</TableCell>

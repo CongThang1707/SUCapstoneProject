@@ -22,7 +22,9 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
-  CircularProgress
+  CircularProgress,
+  Input,
+  FormHelperText
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { AddCircleOutlined, Edit, Delete } from '@mui/icons-material';
@@ -49,6 +51,7 @@ const UtilitiesBrand = () => {
   const [validationErrors, setValidationErrors] = useState({});
   const [filter, setFilter] = useState('');
   const [selectedBrand, setSelectedBrand] = useState(null);
+  const [brandImage, setBrandImage] = useState(false);
 
   const validateNewBrandData = () => {
     const errors = {};
@@ -113,7 +116,7 @@ const UtilitiesBrand = () => {
     }
 
     try {
-      const response = await axios.post('https://3.1.81.96/api/Brands', newBrandData);
+      const response = await axios.post('https://3.1.81.96/api/Brands', { ...newBrandData, brandImage: brandImage });
       if (response.status === 201) {
         setNewBrandData({
           brandName: '',
@@ -122,13 +125,7 @@ const UtilitiesBrand = () => {
           brandContactEmail: ''
         });
         setShowAddBrandDialog(false);
-        const updatedResponse = await axios.get('https://3.1.81.96/api/Brands', {
-          params: {
-            pageNumber: 1,
-            pageSize: 1000
-          }
-        });
-        setBrandData(updatedResponse.data);
+        fetchBrandData();
         Toastify({
           text: 'Brand added successfully!',
           duration: 3000,
@@ -166,9 +163,12 @@ const UtilitiesBrand = () => {
     }
     if (!selectedBrand) return;
     try {
-      const response = await axios.put(`https://3.1.81.96/api/Brands/${selectedBrand.brandId}`, updateBrandData);
+      const response = await axios.put(`https://3.1.81.96/api/Brands/${selectedBrand.brandId}`, {
+        ...updateBrandData,
+        brandImage: brandImage
+      });
       if (response.status === 200) {
-        setBrandData(brandData.map((brand) => (brand.brandId === selectedBrand.brandId ? { ...brand, ...updateBrandData } : brand)));
+        fetchBrandData();
         Toastify({
           text: 'Brand updated successfully!',
           duration: 3000,
@@ -279,26 +279,28 @@ const UtilitiesBrand = () => {
   const handleOpenUpdateDialog = (brand) => {
     setSelectedBrand(brand);
     setUpdateBrandData({
-      brandDescription: brand.brandDescription || '',
-      brandImage: brand.brandImage || ''
+      brandDescription: brand.brandDescription,
+      brandImage: brand.brandImage
     });
     setShowUpdateBrandDialog(true);
+    setBrandImage(brand.brandImage);
+  };
+
+  const fetchBrandData = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await axios.get('https://3.1.81.96/api/Brands?pageNumber=1&pageSize=10');
+      setBrandData(response.data);
+    } catch (error) {
+      console.error('Error fetching brand data:', error);
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
-    const fetchBrandData = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const response = await axios.get('https://3.1.81.96/api/Brands?pageNumber=1&pageSize=10');
-        setBrandData(response.data);
-      } catch (error) {
-        console.error('Error fetching brand data:', error);
-        setError(error.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchBrandData();
   }, []);
 
@@ -307,6 +309,56 @@ const UtilitiesBrand = () => {
       brand.brandName.toLowerCase().includes(filter.toLowerCase()) || brand.brandContactEmail.toLowerCase().includes(filter.toLowerCase())
     );
   });
+
+  const handleImageUpload = async (event) => {
+    const userId = 469;
+    const file = event.target.files[0];
+    const formData = new FormData();
+    const preset_key = 'xdm798lx';
+    const folder = `users/${userId}`;
+    const tags = `${userId}`;
+    if (file) {
+      // const url = URL.createObjectURL(file);
+      formData.append('file', file);
+      formData.append('upload_preset', preset_key);
+      formData.append('tags', tags);
+      formData.append('folder', folder);
+      axios.post('https://api.cloudinary.com/v1_1/dchov8fes/image/upload', formData).then(async (result) => {
+        // const layerItemValue = result.data.secure_url;
+        // const layerId = await createLayer(templateId, 1);
+        // const layerItemId = await createLayerItem(layerId, layerItemValue);
+        // addImage(file, layerId);
+        // await createBox(layerId, 0).then((boxId) => {
+        //   addImage(file, boxId);
+        // })
+
+        // setAssetImage((prevImages) => [result.data, ...prevImages]);
+
+        // await createBox(layerId, 0);
+        // const public_id = result.data.public_id;
+
+        // setAssetImage((preImages) => [public_id, ...preImages]);
+
+        const imageUrl = result.data.secure_url;
+        setBrandImage(imageUrl);
+        setNewBrandData((prevBrandData) => ({
+          ...prevBrandData,
+          brandImage: imageUrl
+        }));
+        setUpdateBrandData((prevBrandData) => ({
+          ...prevBrandData,
+          brandImage: imageUrl
+        }));
+        console.log('Result hihi: ', result.data.secure_url);
+        // console.log('layerId: ', layerId);
+        // console.log('layerItemId: ', layerItemId);
+
+        // console.log('Response from cloudinary when upload image:', JSON.stringify(layerItemValue));
+      });
+      // addImage(file, boxId);
+      // uploadWidget();
+    }
+  };
 
   return (
     <Box sx={{ flexGrow: 1, p: 3 }}>
@@ -414,7 +466,7 @@ const UtilitiesBrand = () => {
             error={!!validationErrors.brandDescription}
             helperText={validationErrors.brandDescription}
           />
-          <TextField
+          {/* <TextField
             margin="dense"
             label="Brand Image URL"
             name="brandImage"
@@ -424,7 +476,18 @@ const UtilitiesBrand = () => {
             onChange={handleChange}
             error={!!validationErrors.brandImage}
             helperText={validationErrors.brandImage}
+          /> */}
+          <Input
+            type="file"
+            name="brandImage"
+            accept="image/*"
+            onChange={handleImageUpload}
+            fullWidth
+            margin="dense"
+            error={!!validationErrors.brandImage}
+            required
           />
+          <FormHelperText error={!!validationErrors.brandImage}>{validationErrors.brandImage}</FormHelperText>
           <TextField
             margin="dense"
             label="Brand Contact Email"
@@ -459,18 +522,17 @@ const UtilitiesBrand = () => {
             error={!!validationErrors.brandDescription}
             helperText={validationErrors.brandDescription}
           />
-          <TextField
-            margin="dense"
-            label="Brand Image URL"
+          <Input
+            type="file"
             name="brandImage"
+            accept="image/*"
+            onChange={handleImageUpload}
             fullWidth
-            variant="outlined"
-            value={updateBrandData.brandImage}
-            onChange={handleUpdateChange}
-            required
+            margin="dense"
             error={!!validationErrors.brandImage}
-            helperText={validationErrors.brandImage}
+            required
           />
+          <FormHelperText error={!!validationErrors.brandImage}>{validationErrors.brandImage}</FormHelperText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseUpdateBrandDialog}>Cancel</Button>

@@ -24,10 +24,12 @@ import {
   DialogTitle,
   DialogContent,
   DialogContentText,
-  DialogActions
+  DialogActions,
+  Input,
+  FormHelperText
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import { AddCircleOutlined, Delete } from '@mui/icons-material';
+import { AddCircleOutlined, Delete, Edit } from '@mui/icons-material';
 import MoreVertIcon from '@mui/icons-material/MoreVert'; // Import three dots icon
 
 const EntityTemplate = () => {
@@ -51,6 +53,9 @@ const EntityTemplate = () => {
     templateImgPath: ''
   });
   const [validationErrors, setValidationErrors] = useState({});
+  const [showEditTemplateDialog, setShowEditTemplateDialog] = useState(false);
+  const [editTemplateData, setEditTemplateData] = useState({});
+  const [templateImgPath, setTemplateImgPath] = useState(false);
 
   const validateNewTemplateData = () => {
     const errors = {};
@@ -73,16 +78,28 @@ const EntityTemplate = () => {
     return Object.keys(errors).length === 0;
   };
 
+  const validateEditTemplateData = () => {
+    const errors = {};
+    if (!editTemplateData.templateName.trim()) {
+      errors.templateName = 'Template name is required';
+    }
+    if (!editTemplateData.templateDescription.trim()) {
+      errors.templateDescription = 'Template description is required';
+    }
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleAddTemplate = async () => {
     if (!validateNewTemplateData()) {
       return;
     }
 
     try {
-      const response = await axios.post('https://3.1.81.96/api/Templates', newTemplateData);
+      const response = await axios.post('https://3.1.81.96/api/Templates', { ...newTemplateData, templateImgPath: templateImgPath });
       if (response.status === 201) {
         // Update template data locally (assuming server returns the created template data)
-        setTemplateData((prevTemplateData) => [...prevTemplateData, response.data]);
+        fetchData();
         setOpenSnackbar(true);
         setSnackbarMessage('Template added successfully!');
         setShowAddTemplateDialog(false);
@@ -97,6 +114,31 @@ const EntityTemplate = () => {
     } catch (error) {
       console.error('Error creating template:', error);
       setError(`Error: ${error.message}`);
+    }
+  };
+
+  const handleEditTemplate = async () => {
+    if (!validateEditTemplateData()) {
+      return;
+    }
+
+    try {
+      const response = await axios.put(`https://3.1.81.96/api/Templates/${editTemplateData.templateId}`, {
+        ...editTemplateData,
+        templateImgPath: templateImgPath
+      });
+      if (response.status === 200) {
+        fetchData();
+        setOpenSnackbar(true);
+        setSnackbarMessage('Template updated successfully!');
+        setShowEditTemplateDialog(false);
+      } else {
+        setError(`Error: ${response.statusText}`);
+        console.error('Error updating template:', response);
+      }
+    } catch (error) {
+      setError(`Error: ${error.message}`);
+      console.error('Error updating template:', error);
     }
   };
 
@@ -121,8 +163,33 @@ const EntityTemplate = () => {
     }));
   };
 
+  const handleEditTemplateChange = (event) => {
+    const { name, value } = event.target;
+
+    if (name === 'templateOrientation') {
+      setEditTemplateData((prevState) => ({
+        ...prevState,
+        templateWidth: value === 'vertical' ? 900 : 1600,
+        templateHeight: value === 'vertical' ? 1600 : 900,
+        [name]: value
+      }));
+    } else {
+      setEditTemplateData((prevState) => ({ ...prevState, [name]: value }));
+    }
+
+    setValidationErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: ''
+    }));
+  };
+
   const handleCloseAddTemplateDialog = () => {
     setShowAddTemplateDialog(false);
+    setValidationErrors({});
+  };
+
+  const handleCloseEditTemplateDialog = () => {
+    setShowEditTemplateDialog(false);
     setValidationErrors({});
   };
 
@@ -159,31 +226,73 @@ const EntityTemplate = () => {
     }
   };
 
+  const fetchData = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const [templateResponse, brandResponse] = await Promise.all([
+        axios.get('https://3.1.81.96/api/Templates?pageNumber=1&pageSize=1000'),
+        axios.get('https://3.1.81.96/api/Brands?pageNumber=1&pageSize=100')
+      ]);
+
+      setTemplateData(templateResponse.data);
+      setBrandData(brandResponse.data);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const [templateResponse, brandResponse] = await Promise.all([
-          axios.get('https://3.1.81.96/api/Templates?pageNumber=1&pageSize=1000'),
-          axios.get('https://3.1.81.96/api/Brands?pageNumber=1&pageSize=100')
-        ]);
-
-        setTemplateData(templateResponse.data);
-        setBrandData(brandResponse.data);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setError(error.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchData();
   }, []);
 
   const filteredTemplates = templateData.filter((template) => template.templateName.toLowerCase().includes(filter.toLowerCase()));
+
+  const handleImageUpload = async (event) => {
+    const userId = 469;
+    const file = event.target.files[0];
+    const formData = new FormData();
+    const preset_key = 'xdm798lx';
+    const folder = `users/${userId}`;
+    const tags = `${userId}`;
+    if (file) {
+      // const url = URL.createObjectURL(file);
+      formData.append('file', file);
+      formData.append('upload_preset', preset_key);
+      formData.append('tags', tags);
+      formData.append('folder', folder);
+      axios.post('https://api.cloudinary.com/v1_1/dchov8fes/image/upload', formData).then(async (result) => {
+        const imageUrl = result.data.secure_url;
+        setTemplateImgPath(imageUrl);
+        setNewTemplateData((prevTemplateData) => ({
+          ...prevTemplateData,
+          templateImgPath: imageUrl
+        }));
+        setEditTemplateData((prevTemplateData) => ({
+          ...prevTemplateData,
+          templateImgPath: imageUrl
+        }));
+        console.log('Result hihi: ', result.data.secure_url);
+      });
+    }
+  };
+
+  const handleOpenEditDialog = (template) => {
+    setEditTemplateData({
+      templateId: template.templateId,
+      templateName: template.templateName,
+      templateDescription: template.templateDescription,
+      templateWidth: template.templateWidth,
+      templateHeight: template.templateHeight,
+      templateImgPath: template.templateImgPath
+    });
+    setShowEditTemplateDialog(true);
+    setTemplateImgPath(template.templateImgPath);
+  };
 
   return (
     <Box sx={{ flexGrow: 1, p: 3 }}>
@@ -288,6 +397,18 @@ const EntityTemplate = () => {
           'aria-labelledby': 'basic-button'
         }}
       >
+        <MenuItem
+          onClick={() => {
+            handleOpenEditDialog(selectedTemplate);
+            console.log('edit', selectedTemplate);
+            handleClose();
+          }}
+        >
+          <ListItemIcon>
+            <Edit fontSize="small" color="primary" />
+          </ListItemIcon>
+          <ListItemText primary={<Typography color="primary">Edit</Typography>} />
+        </MenuItem>
         <MenuItem onClick={handleDelete}>
           <ListItemIcon>
             <Delete fontSize="small" color="error" />
@@ -370,24 +491,60 @@ const EntityTemplate = () => {
             <option value="vertical">Vertical (900 x 1600)</option>
             <option value="horizontal">Horizontal (1600 x 900)</option>
           </TextField>
-          <TextField
-            margin="dense"
+          <Input
+            type="file"
             name="templateImgPath"
-            label="Template Image Path"
-            type="text"
+            accept="image/*"
+            onChange={handleImageUpload}
             fullWidth
-            variant="outlined"
-            value={newTemplateData.templateImgPath}
-            onChange={handleAddTemplateChange}
-            required
+            margin="dense"
             error={!!validationErrors.templateImgPath}
-            helperText={validationErrors.templateImgPath}
+            required
           />
+          <FormHelperText error={!!validationErrors.templateImgPath}>{validationErrors.templateImgPath}</FormHelperText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseAddTemplateDialog}>Cancel</Button>
           <Button variant="contained" onClick={handleAddTemplate}>
             Add Template
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={showEditTemplateDialog} onClose={handleCloseEditTemplateDialog}>
+        <DialogTitle>Edit Template</DialogTitle>
+        <DialogContent>
+          <DialogContentText>Edit the details of the template.</DialogContentText>
+          <TextField
+            margin="dense"
+            name="templateName"
+            label="Template Name"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={editTemplateData.templateName}
+            onChange={handleEditTemplateChange}
+            required
+            error={!!validationErrors.templateName}
+            helperText={validationErrors.templateName}
+          />
+          <TextField
+            margin="dense"
+            name="templateDescription"
+            label="Template Description"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={editTemplateData.templateDescription}
+            onChange={handleEditTemplateChange}
+            required
+            error={!!validationErrors.templateDescription}
+            helperText={validationErrors.templateDescription}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEditTemplateDialog}>Cancel</Button>
+          <Button variant="contained" onClick={handleEditTemplate}>
+            Save Changes
           </Button>
         </DialogActions>
       </Dialog>

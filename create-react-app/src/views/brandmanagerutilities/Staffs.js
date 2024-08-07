@@ -29,7 +29,7 @@ import { useNavigate } from 'react-router-dom';
 import Toastify from 'toastify-js';
 import 'toastify-js/src/toastify.css';
 
-const UtilitiesBrandStaff = () => {
+const Staff = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [brandData, setBrandData] = useState([]);
@@ -51,6 +51,7 @@ const UtilitiesBrandStaff = () => {
   const navigate = useNavigate();
   const [validationErrors, setValidationErrors] = useState({});
   const [filteredStores, setFilteredStores] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const validateNewUserData = () => {
     const errors = {};
@@ -248,13 +249,29 @@ const UtilitiesBrandStaff = () => {
     }
   };
 
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  // Filter the staff based on the search query
+  const filteredStaff = brandData.filter(
+    (staff) =>
+      staff.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      staff.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      staff.storeName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <MainCard title={<Typography variant="h5">Brand Staff Table</Typography>}>
       <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
-          <Button variant="contained" color="primary" onClick={handleOpen}>
-            Add Staff
-          </Button>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <TextField label="Search" variant="outlined" value={searchQuery} onChange={handleSearchChange} sx={{ marginBottom: '16px' }} />
+            <Button variant="contained" color="primary" onClick={handleOpen}>
+              Add Staff
+            </Button>
+          </Box>
+
           {isLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
               <CircularProgress />
@@ -271,7 +288,7 @@ const UtilitiesBrandStaff = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {brandData.map((staff) => (
+                  {filteredStaff.map((staff) => (
                     <TableRow key={staff.userId} hover>
                       <TableCell>{staff.userName}</TableCell>
                       <TableCell>{staff.email}</TableCell>
@@ -383,4 +400,4 @@ const UtilitiesBrandStaff = () => {
   );
 };
 
-export default UtilitiesBrandStaff;
+export default Staff;
