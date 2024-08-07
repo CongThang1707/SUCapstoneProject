@@ -18,10 +18,10 @@ const brandManagerUtilities = {
   type: 'group',
   children: [
     {
-      id: 'util-typography',
-      title: 'Users',
+      id: 'util-staffs',
+      title: 'Staffs',
       type: 'item',
-      url: '/utils/util-typography',
+      url: '/utils/util-staffs',
       icon: icons.IconUsers,
       breadcrumbs: false
     },

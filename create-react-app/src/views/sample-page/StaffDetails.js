@@ -46,9 +46,8 @@ const BrandStaffDetails = () => {
 
   const fetchUserData = async () => {
     try {
-      const response = await axios.get(`https://3.1.81.96/api/Users?userId=${staffId}&isDeleted=true`);
+      const response = await axios.get(`https://3.1.81.96/api/Users?userId=${staffId}`);
       setUserData(response.data[0]);
-      console.log(userData);
       const existingBrandStaff = await axios.get(`https://3.1.81.96/api/BrandStaffs?userId=${staffId}`);
       if (existingBrandStaff.data.length > 0) {
         const brandId = existingBrandStaff.data[0].brandId;
@@ -78,8 +77,6 @@ const BrandStaffDetails = () => {
       setBrands(allBrandsResponse.data);
       const allStoresResponse = await axios.get('https://3.1.81.96/api/Stores?pageNumber=1&pageSize=1000');
       setStores(allStoresResponse.data);
-      console.log('userData', userData);
-      console.log('brandStaff', existingBrandStaff.data[0].brandStaffId);
     } catch (error) {
       console.error('Error fetching user data:', error);
     } finally {
@@ -89,17 +86,6 @@ const BrandStaffDetails = () => {
   useEffect(() => {
     fetchUserData();
   }, [staffId]);
-
-  const getRoleName = (role) => {
-    switch (role) {
-      case 1:
-        return 'Brand Manager';
-      case 2:
-        return 'Store Manager';
-      default:
-        return 'User';
-    }
-  };
 
   const handleClickShowPassword = () => {
     setShowPassword((prevShowPassword) => !prevShowPassword);
@@ -202,7 +188,7 @@ const BrandStaffDetails = () => {
         backgroundColor: 'linear-gradient(to right, #00b09b, #96c93d)'
       }).showToast();
       setIsLoading(true);
-      fetchUserData(); // Reload user data after deletion
+      navigate(-1);
     } catch (err) {
       setError('Error deleting Brand Staff');
     } finally {
@@ -222,9 +208,6 @@ const BrandStaffDetails = () => {
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <Paper elevation={3} sx={{ padding: 2 }}>
-                <Typography variant="subtitle1">
-                  <strong>Brand:</strong> {userData?.brandName}
-                </Typography>
                 {userData?.role === 2 && (
                   <Typography variant="subtitle1">
                     <strong>Store Name:</strong> {userData?.storeName}
@@ -244,24 +227,18 @@ const BrandStaffDetails = () => {
                 <Typography variant="subtitle1">
                   <strong>Email:</strong> {userData?.email}
                 </Typography>
-                <Typography variant="subtitle1">
-                  <strong>Role:</strong> {getRoleName(userData?.role)}
-                </Typography>
-                <Typography variant="subtitle1">
-                  <strong>Status:</strong> {userData?.isDeleted ? 'Disabled' : 'Enabled'}
-                </Typography>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Button variant="contained" color="primary" onClick={() => navigate(-1)}>
                     Back
                   </Button>
-                  {userData?.brandName === 'Unassigned' && userData?.isDeleted === false && (
+                  {userData?.brandName === 'Unassigned' && (
                     <Button variant="contained" color="primary" onClick={handleAssignOpen}>
-                      Assign Brand Staff
+                      Assign Brand
                     </Button>
                   )}
                   {userData?.brandName !== 'Unassigned' && (
                     <Button variant="contained" color="error" onClick={handleDeleteOpen}>
-                      Unassign Brand Staff
+                      Delete Brand Staff
                     </Button>
                   )}
                 </Box>
