@@ -295,88 +295,68 @@ const EntityTemplate = () => {
   };
 
   return (
-    <Box sx={{ flexGrow: 1, p: 3 }}>
-      <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <MainCard title={<Typography variant="h5">Templates</Typography>}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <TextField
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                variant="outlined"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
-                  )
-                }}
-                sx={{
-                  width: '500px',
-                  mr: 60, // Set a fixed width (adjust as needed)
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    paddingRight: 1
-                  }
-                }}
-              />
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => setShowAddTemplateDialog(true)}
-                startIcon={<AddCircleOutlined />}
-                sx={{
-                  borderRadius: 2,
-                  boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  px: 2, // Increase horizontal padding further
-                  py: 1.5,
-                  whiteSpace: 'nowrap' // Prevent text from wrapping
-                }}
-                size="small"
-              >
-                Add Template
-              </Button>
-            </Box>
+    <>
+      <MainCard title="Templates">
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <TextField
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            variant="outlined"
+            sx={{ marginBottom: '16px' }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              )
+            }}
+          />
+          <Button
+            variant="contained"
+            color="success"
+            onClick={() => setShowAddTemplateDialog(true)}
+            startIcon={<AddCircleOutlined />}
+            sx={{ mb: 2, color: 'white' }}
+          >
+            Add Template
+          </Button>
+        </Box>
 
-            {isLoading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
-                <CircularProgress />
-              </Box>
-            ) : error ? (
-              <Typography color="error">{error}</Typography>
-            ) : (
-              <Grid container spacing={3}>
-                {filteredTemplates.map((template, index) => (
-                  <Grid item xs={12} sm={6} md={4} key={template.templateId || index}>
-                    <Card sx={{ border: 1, borderColor: 'divider', cursor: 'pointer' }} onClick={() => handleViewDetails(template)}>
-                      {/* Optional: Display an image */}
-                      {template.templateImgPath && (
-                        <CardMedia component="img" height="200" image={template.templateImgPath} alt={template.templateName} />
-                      )}
-                      <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Box>
-                          <Typography gutterBottom variant="h4" component="div">
-                            {template.templateName}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {template.templateWidth} x {template.templateHeight}
-                          </Typography>
-                        </Box>
-                        {/* Three Dots Menu Button */}
-                        <IconButton aria-label="settings" onClick={(event) => handleClick(event, template)}>
-                          <MoreVertIcon />
-                        </IconButton>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))}
+        {isLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+            <CircularProgress />
+          </Box>
+        ) : error ? (
+          <Typography color="error">{error}</Typography>
+        ) : (
+          <Grid container spacing={3}>
+            {filteredTemplates.map((template, index) => (
+              <Grid item xs={12} sm={6} md={4} key={template.templateId || index}>
+                <Card sx={{ border: 1, borderColor: 'divider', cursor: 'pointer' }} onClick={() => handleViewDetails(template)}>
+                  {/* Optional: Display an image */}
+                  {template.templateImgPath && (
+                    <CardMedia component="img" height="200" image={template.templateImgPath} alt={template.templateName} />
+                  )}
+                  <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box>
+                      <Typography gutterBottom variant="h4" component="div">
+                        {template.templateName}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {template.templateWidth} x {template.templateHeight}
+                      </Typography>
+                    </Box>
+                    {/* Three Dots Menu Button */}
+                    <IconButton aria-label="settings" onClick={(event) => handleClick(event, template)}>
+                      <MoreVertIcon />
+                    </IconButton>
+                  </CardContent>
+                </Card>
               </Grid>
-            )}
-          </MainCard>
-        </Grid>
-      </Grid>
+            ))}
+          </Grid>
+        )}
+      </MainCard>
 
       <Snackbar
         open={openSnackbar}
@@ -548,7 +528,7 @@ const EntityTemplate = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </>
   );
 };
 

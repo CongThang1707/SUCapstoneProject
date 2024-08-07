@@ -12,6 +12,7 @@ const Display = Loadable(lazy(() => import('views/utilities/Display')));
 const ChooseTemplate = Loadable(lazy(() => import('views/sample-page/ChooseTemplate')));
 const ConfirmPassword = Loadable(lazy(() => import('views/pages/authentication/authentication3/ConfirmPassword')));
 const Checking = Loadable(lazy(() => import('views/sample-page/Checking')));
+const AdminChooseTemplate = Loadable(lazy(() => import('views/sample-page/AdminChooseTemplate')));
 
 // ==============================|| AUTHENTICATION ROUTING ||============================== //
 
@@ -46,6 +47,10 @@ const AuthenticationRoutes = {
     {
       path: '/pages/confirm-password',
       element: <ConfirmPassword />
+    },
+    {
+      path: '/pages/admin-choose-template',
+      element: <AdminChooseTemplate />
     }
   ]
 };

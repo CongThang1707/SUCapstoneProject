@@ -340,83 +340,86 @@ const UtilitiesBrand = () => {
   };
 
   return (
-    <Box sx={{ flexGrow: 1, p: 3 }}>
-      <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <MainCard title={<Typography variant="h5">Brand Table</Typography>}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <TextField
-                label="Search"
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                variant="outlined"
-                sx={{ marginBottom: '16px' }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
-                  )
-                }}
-              />
-              <Button variant="contained" color="primary" startIcon={<AddCircleOutlined />} onClick={() => setShowAddBrandDialog(true)}>
-                Add Brand
-              </Button>
-            </Box>
-            {isLoading ? (
-              <CircularProgress />
-            ) : (
-              <TableContainer component={Paper}>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Brand Image</TableCell>
-                      <TableCell>Brand Name</TableCell>
-                      <TableCell>Brand Description</TableCell>
-                      <TableCell>Contact Email</TableCell>
-                      <TableCell>Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {filteredBrandData.map((brand) => (
-                      <TableRow key={brand.brandId}>
-                        <TableCell>
-                          <Avatar src={brand.brandImage} sx={{ width: 56, height: 56 }} />
-                        </TableCell>
-                        <TableCell>{brand.brandName}</TableCell>
-                        <TableCell>{brand.brandDescription}</TableCell>
-                        <TableCell>{brand.brandContactEmail}</TableCell>
-                        <TableCell>
-                          <Stack direction="row" spacing={1}>
-                            <Button
-                              variant="contained"
-                              color="info"
-                              size="small"
-                              onClick={() => handleOpenUpdateDialog(brand)}
-                              startIcon={<Edit />}
-                            >
-                              Edit
-                            </Button>
-                            <Button
-                              variant="contained"
-                              color="error"
-                              size="small"
-                              onClick={() => handleOpenDeleteConfirmDialog(brand)}
-                              startIcon={<Delete />}
-                            >
-                              Delete
-                            </Button>
-                          </Stack>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
-          </MainCard>
-        </Grid>
-      </Grid>
+    <>
+      <MainCard title="Brand Table">
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <TextField
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            variant="outlined"
+            sx={{ marginBottom: '16px' }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              )
+            }}
+          />
+          <Button
+            variant="contained"
+            color="success"
+            startIcon={<AddCircleOutlined />}
+            onClick={() => setShowAddBrandDialog(true)}
+            sx={{ mb: 2, color: 'white' }}
+          >
+            Add Brand
+          </Button>
+        </Box>
+        {isLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Brand Image</TableCell>
+                  <TableCell>Brand Name</TableCell>
+                  <TableCell>Brand Description</TableCell>
+                  <TableCell>Contact Email</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredBrandData.map((brand) => (
+                  <TableRow key={brand.brandId}>
+                    <TableCell>
+                      <Avatar src={brand.brandImage} sx={{ width: 56, height: 56 }} />
+                    </TableCell>
+                    <TableCell>{brand.brandName}</TableCell>
+                    <TableCell>{brand.brandDescription}</TableCell>
+                    <TableCell>{brand.brandContactEmail}</TableCell>
+                    <TableCell>
+                      <Stack direction="row" spacing={1}>
+                        <Button
+                          variant="contained"
+                          color="info"
+                          size="small"
+                          onClick={() => handleOpenUpdateDialog(brand)}
+                          startIcon={<Edit />}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="contained"
+                          color="error"
+                          size="small"
+                          onClick={() => handleOpenDeleteConfirmDialog(brand)}
+                          startIcon={<Delete />}
+                        >
+                          Delete
+                        </Button>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </MainCard>
 
       <Dialog open={showAddBrandDialog} onClose={handleCloseAddBrandDialog}>
         <DialogTitle>Add New Brand</DialogTitle>
@@ -522,7 +525,7 @@ const UtilitiesBrand = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </>
   );
 };
 

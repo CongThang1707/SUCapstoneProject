@@ -55,34 +55,10 @@ const utilities = {
       id: 'util-display',
       title: 'Display',
       type: 'item',
-      url: 'pages/choose-template',
+      url: 'pages/admin-choose-template',
       icon: icons.IconWindmill,
       breadcrumbs: false
     }
-    // {
-    //   id: 'icons',
-    //   title: 'Icons',
-    //   type: 'collapse',
-    //   icon: icons.IconWindmill,
-    //   children: [
-    //     {
-    //       id: 'tabler-icons',
-    //       title: 'Tabler Icons',
-    //       type: 'item',
-    //       url: '/icons/tabler-icons',
-    //       breadcrumbs: false
-    //     },
-    //     {
-    //       id: 'material-icons',
-    //       title: 'Material Icons',
-    //       type: 'item',
-    //       external: true,
-    //       target: '_blank',
-    //       url: 'https://mui.com/material-ui/material-icons/',
-    //       breadcrumbs: false
-    //     }
-    //   ]
-    // }
   ]
 };
 

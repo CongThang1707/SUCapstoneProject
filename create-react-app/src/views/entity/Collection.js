@@ -251,94 +251,74 @@ const EntityCollection = () => {
   };
 
   return (
-    <Box sx={{ flexGrow: 1, p: 3 }}>
-      <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <MainCard title={<Typography variant="h5">Collection Table</Typography>}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <TextField
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                variant="outlined"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
-                  )
-                }}
-                sx={{
-                  width: '500px',
-                  mr: 60,
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    paddingRight: 1
-                  }
-                }}
-              />
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => setShowAddCollectionDialog(true)}
-                startIcon={<AddCircleOutlined />}
-                sx={{
-                  borderRadius: 2,
-                  boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  px: 2,
-                  py: 1.5,
-                  whiteSpace: 'nowrap'
-                }}
-                size="small"
-              >
-                Add Collection
-              </Button>
-            </Box>
-            {isLoading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
-                <CircularProgress />
-              </div>
-            ) : error ? (
-              <p>{error}</p>
-            ) : (
-              <Grid container spacing={3}>
-                {filteredCollectionData.map((collection) => (
-                  <Grid item xs={12} sm={6} md={4} lg={3} key={collection.collectionId}>
-                    <Card sx={{ border: '1px solid #ccc', borderRadius: 2, boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)' }}>
-                      <CardMedia
-                        component="img"
-                        height="140"
-                        image={collection.collectionBackgroundImgPath}
-                        alt={collection.collectionName}
-                      />
-                      <CardContent>
-                        <Typography gutterBottom variant="h5" component="div">
-                          {collection.collectionName}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {collection.collectionDescription}
-                        </Typography>
-                      </CardContent>
-                      <CardActions>
-                        <Button size="small" color="info" onClick={() => handleViewDetails(collection)} startIcon={<Visibility />}>
-                          View
-                        </Button>
-                        <Button size="small" color="success" onClick={() => handleEditClick(collection)} startIcon={<Edit />}>
-                          Edit
-                        </Button>
-                        <Button size="small" color="error" onClick={() => handleDelete(collection.collectionId)} startIcon={<Delete />}>
-                          Delete
-                        </Button>
-                      </CardActions>
-                    </Card>
-                  </Grid>
-                ))}
+    <>
+      <MainCard title="Collections">
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <TextField
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            variant="outlined"
+            sx={{
+              marginBottom: '16px'
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              )
+            }}
+          />
+          <Button
+            variant="contained"
+            color="success"
+            onClick={() => setShowAddCollectionDialog(true)}
+            startIcon={<AddCircleOutlined />}
+            sx={{
+              mb: 2,
+              color: 'white'
+            }}
+          >
+            Add Collection
+          </Button>
+        </Box>
+        {isLoading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+            <CircularProgress />
+          </div>
+        ) : error ? (
+          <p>{error}</p>
+        ) : (
+          <Grid container spacing={3}>
+            {filteredCollectionData.map((collection) => (
+              <Grid item xs={12} sm={6} md={4} lg={3} key={collection.collectionId}>
+                <Card sx={{ border: '1px solid #ccc', borderRadius: 2, boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)' }}>
+                  <CardMedia component="img" height="140" image={collection.collectionBackgroundImgPath} alt={collection.collectionName} />
+                  <CardContent>
+                    <Typography gutterBottom variant="h5" component="div">
+                      {collection.collectionName}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {collection.collectionDescription}
+                    </Typography>
+                  </CardContent>
+                  <CardActions>
+                    <Button size="small" color="info" onClick={() => handleViewDetails(collection)} startIcon={<Visibility />}>
+                      View
+                    </Button>
+                    <Button size="small" color="success" onClick={() => handleEditClick(collection)} startIcon={<Edit />}>
+                      Edit
+                    </Button>
+                    <Button size="small" color="error" onClick={() => handleDelete(collection.collectionId)} startIcon={<Delete />}>
+                      Delete
+                    </Button>
+                  </CardActions>
+                </Card>
               </Grid>
-            )}
-          </MainCard>
-        </Grid>
-      </Grid>
+            ))}
+          </Grid>
+        )}
+      </MainCard>
 
       <Snackbar open={openSnackbar} autoHideDuration={3000} onClose={() => setOpenSnackbar(false)} message={snackbarMessage} />
       <Dialog open={showAddCollectionDialog} onClose={handleCloseAddCollectionDialog}>
@@ -457,7 +437,7 @@ const EntityCollection = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </>
   );
 };
 

@@ -19,7 +19,8 @@ import {
   MenuItem,
   Select,
   FormControl,
-  InputLabel
+  InputLabel,
+  InputAdornment
 } from '@mui/material';
 import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
@@ -28,6 +29,8 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { useNavigate } from 'react-router-dom';
 import Toastify from 'toastify-js';
 import 'toastify-js/src/toastify.css';
+import SearchIcon from '@mui/icons-material/Search';
+import AddCircleOutlined from '@mui/icons-material/AddCircleOutlined';
 
 const UtilitiesBrandStaff = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -304,7 +307,7 @@ const UtilitiesBrandStaff = () => {
   const filteredBrandData = brandData.filter((staff) => staff.userName.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
-    <MainCard title={<Typography variant="h5">Brand Staff Table</Typography>}>
+    <MainCard title="Brand Staff Table">
       <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
           <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -314,13 +317,26 @@ const UtilitiesBrandStaff = () => {
               value={searchTerm}
               onChange={handleSearchInputChange}
               sx={{ marginBottom: '16px' }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                )
+              }}
             />
-            <Button variant="contained" color="primary" onClick={handleOpen}>
+            <Button
+              variant="contained"
+              color="success"
+              startIcon={<AddCircleOutlined />}
+              onClick={handleOpen}
+              sx={{ mb: 2, color: 'white' }}
+            >
               Add User
             </Button>
           </Box>
           {isLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
               <CircularProgress />
             </Box>
           ) : brandData.length > 0 ? (

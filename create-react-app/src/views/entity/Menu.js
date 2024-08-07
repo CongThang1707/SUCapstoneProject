@@ -212,254 +212,230 @@ const EntityMenu = () => {
   };
 
   return (
-    <Box sx={{ flexGrow: 1, p: 3 }}>
-      <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <MainCard title={<Typography variant="h5">Menus</Typography>}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <TextField
-                label="Search"
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                variant="outlined"
-                fullWidth
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
-                  )
-                }}
-                sx={{ mr: 2, flexGrow: 1 }} // Add flexGrow to take up available space
-              />
-
-              {/* Lengthened Add Product Button */}
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => setShowAddMenuDialog(true)}
-                startIcon={<AddCircleOutlined />}
-                sx={{
-                  borderRadius: 2,
-                  boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  px: 4, // Increase horizontal padding further
-                  py: 1.5,
-                  whiteSpace: 'nowrap' // Prevent text from wrapping
-                }}
-              >
-                Add Menu
-              </Button>
-            </Box>
-            {isLoading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
-                <CircularProgress />
-              </Box>
-            ) : (
-              <Grid container spacing={3}>
-                {filteredMenus.map((menu) => (
-                  <Grid item xs={12} sm={6} md={4} key={menu.menuId}>
-                    <Card
-                      elevation={4} // Add elevation for a raised effect
-                      sx={{
-                        borderRadius: 2, // Slightly rounded corners
-                        transition: 'box-shadow 0.3s ease', // Add a smooth transition
-                        '&:hover': {
-                          boxShadow: 6 // Increase the elevation on hover
-                        }
-                      }}
-                    >
-                      <CardContent>
-                        {editingMenu === menu.menuId ? (
-                          <>
-                            <TextField
-                              label="Menu Name"
-                              name="menuName"
-                              value={menu.menuName}
-                              onChange={(e) => handleChange(e, menu.menuId)}
-                              fullWidth
-                              margin="normal"
-                            />
-                            <TextField
-                              label="Menu Description"
-                              name="menuDescription"
-                              value={menu.menuDescription}
-                              onChange={(e) => handleChange(e, menu.menuId)}
-                              fullWidth
-                              margin="normal"
-                            />
-                          </>
-                        ) : (
-                          <>
-                            <Typography gutterBottom variant="h5" component="div">
-                              {menu.menuName}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {menu.menuDescription}
-                            </Typography>
-                          </>
-                        )}
-                      </CardContent>
-                      <CardActions sx={{ justifyContent: 'space-between' }}>
-                        {/* Three Dots Menu Button */}
-                        <IconButton aria-label="settings" onClick={(event) => handleClick(event, menu)}>
-                          <MoreVertIcon />
-                        </IconButton>
-                        {/* View Details Button */}
-                        <Button size="small" color="primary" onClick={() => handleViewDetails(menu)}>
-                          View Details
-                        </Button>
-                        {/* Conditional buttons for Edit/Save/Cancel */}
-                        {editingMenu === menu.menuId ? (
-                          <>
-                            <Button variant="outlined" color="primary" onClick={handleCloseEditMenuDialog} startIcon={<CancelIcon />}>
-                              Cancel
-                            </Button>
-                            <Button
-                              variant="contained"
-                              color="primary"
-                              onClick={() => handleSaveEdit(menu.menuId)}
-                              startIcon={<SaveIcon />}
-                            >
-                              Save
-                            </Button>
-                          </>
-                        ) : (
-                          <div></div> // Empty div to maintain spacing when not editing
-                        )}
-                      </CardActions>
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
-            )}
-            {/* <MenuDetails menuData={menuData} handleSaveClick={handleEditMenu} setMenuData={setMenuData} /> */}
-            <Snackbar open={openSnackbar} autoHideDuration={3000} onClose={() => setOpenSnackbar(false)} message={snackbarMessage} />
-            <Dialog open={showAddMenuDialog} onClose={handleCloseAddMenuDialog}>
-              <DialogTitle>Add New Menu</DialogTitle>
-              <DialogContent>
-                <DialogContentText>Please enter the details of the new menu.</DialogContentText>
-                <TextField
-                  autoFocus
-                  margin="dense"
-                  id="brand-select"
-                  name="brandId"
-                  type="text"
-                  label="Brand Name"
-                  fullWidth
-                  variant="outlined"
-                  value={newMenuData.brandId}
-                  onChange={handleAddMenuChange}
-                  select
-                  SelectProps={{ native: true }}
-                  required
-                  error={!!validationErrors.brandId}
-                  helperText={validationErrors.brandId}
+    <>
+      <MainCard title="Menus">
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <TextField
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            variant="outlined"
+            sx={{ marginBottom: '16px' }} // Add flexGrow to take up available space
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              )
+            }} // Add flexGrow to take up available space
+          />
+          <Button
+            variant="contained"
+            color="success"
+            onClick={() => setShowAddMenuDialog(true)}
+            startIcon={<AddCircleOutlined />}
+            sx={{
+              mb: 2, // Add margin bottom
+              color: 'white'
+            }}
+          >
+            Add Menu
+          </Button>
+        </Box>
+        {isLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Grid container spacing={3}>
+            {filteredMenus.map((menu) => (
+              <Grid item xs={12} sm={6} md={4} key={menu.menuId}>
+                <Card
+                  elevation={4} // Add elevation for a raised effect
+                  sx={{
+                    borderRadius: 2, // Slightly rounded corners
+                    transition: 'box-shadow 0.3s ease', // Add a smooth transition
+                    '&:hover': {
+                      boxShadow: 6 // Increase the elevation on hover
+                    }
+                  }}
                 >
-                  <option value="" disabled></option>
-                  {brandData.map((brand) => (
-                    <option key={brand.brandId} value={brand.brandId}>
-                      {brand.brandName}
-                    </option>
-                  ))}
-                </TextField>
-                <TextField
-                  margin="dense"
-                  name="menuName"
-                  label="Menu Name"
-                  type="text"
-                  fullWidth
-                  variant="outlined"
-                  value={newMenuData.menuName}
-                  onChange={handleAddMenuChange} // Use handleAddMenuChange
-                  required
-                  error={!!validationErrors.menuName}
-                  helperText={validationErrors.menuName}
-                />
-                <TextField
-                  margin="dense"
-                  name="menuDescription"
-                  label="Menu Description"
-                  type="text"
-                  fullWidth
-                  variant="outlined"
-                  value={newMenuData.menuDescription}
-                  onChange={handleAddMenuChange} // Use handleAddMenuChange
-                  required
-                  error={!!validationErrors.menuDescription}
-                  helperText={validationErrors.menuDescription}
-                />
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={handleCloseAddMenuDialog}>Cancel</Button>
-                <Button onClick={handleAddMenu} variant="contained">
-                  Add Menu
-                </Button>
-              </DialogActions>
-            </Dialog>
-
-            <Menu
-              id="menu-actions"
-              anchorEl={anchorEl}
-              open={open}
-              onClose={handleClose}
-              MenuListProps={{ 'aria-labelledby': 'basic-button' }}
+                  <CardContent>
+                    {editingMenu === menu.menuId ? (
+                      <>
+                        <TextField
+                          label="Menu Name"
+                          name="menuName"
+                          value={menu.menuName}
+                          onChange={(e) => handleChange(e, menu.menuId)}
+                          fullWidth
+                          margin="normal"
+                        />
+                        <TextField
+                          label="Menu Description"
+                          name="menuDescription"
+                          value={menu.menuDescription}
+                          onChange={(e) => handleChange(e, menu.menuId)}
+                          fullWidth
+                          margin="normal"
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <Typography gutterBottom variant="h5" component="div">
+                          {menu.menuName}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {menu.menuDescription}
+                        </Typography>
+                      </>
+                    )}
+                  </CardContent>
+                  <CardActions sx={{ justifyContent: 'space-between' }}>
+                    {/* Three Dots Menu Button */}
+                    <IconButton aria-label="settings" onClick={(event) => handleClick(event, menu)}>
+                      <MoreVertIcon />
+                    </IconButton>
+                    {/* View Details Button */}
+                    <Button size="small" color="primary" onClick={() => handleViewDetails(menu)}>
+                      View Details
+                    </Button>
+                    {/* Conditional buttons for Edit/Save/Cancel */}
+                    {editingMenu === menu.menuId ? (
+                      <>
+                        <Button variant="outlined" color="primary" onClick={handleCloseEditMenuDialog} startIcon={<CancelIcon />}>
+                          Cancel
+                        </Button>
+                        <Button variant="contained" color="primary" onClick={() => handleSaveEdit(menu.menuId)} startIcon={<SaveIcon />}>
+                          Save
+                        </Button>
+                      </>
+                    ) : (
+                      <div></div> // Empty div to maintain spacing when not editing
+                    )}
+                  </CardActions>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        )}
+        {/* <MenuDetails menuData={menuData} handleSaveClick={handleEditMenu} setMenuData={setMenuData} /> */}
+        <Snackbar open={openSnackbar} autoHideDuration={3000} onClose={() => setOpenSnackbar(false)} message={snackbarMessage} />
+        <Dialog open={showAddMenuDialog} onClose={handleCloseAddMenuDialog}>
+          <DialogTitle>Add New Menu</DialogTitle>
+          <DialogContent>
+            <DialogContentText>Please enter the details of the new menu.</DialogContentText>
+            <TextField
+              autoFocus
+              margin="dense"
+              id="brand-select"
+              name="brandId"
+              type="text"
+              label="Brand Name"
+              fullWidth
+              variant="outlined"
+              value={newMenuData.brandId}
+              onChange={handleAddMenuChange}
+              select
+              SelectProps={{ native: true }}
+              required
+              error={!!validationErrors.brandId}
+              helperText={validationErrors.brandId}
             >
-              <MenuItem onClick={() => handleEditMenu(selectedMenu)}>
-                <ListItemIcon>
-                  <Edit fontSize="small" />
-                </ListItemIcon>
-                <ListItemText>Edit</ListItemText>
-              </MenuItem>
-              <MenuItem onClick={handleDelete}>
-                <ListItemIcon>
-                  <Delete fontSize="small" color="error" />
-                </ListItemIcon>
-                <ListItemText primary={<Typography color="error">Delete</Typography>} />
-              </MenuItem>
-            </Menu>
-            <Dialog open={showEditMenuDialog} onClose={handleCloseEditMenuDialog}>
-              <DialogTitle>Edit Menu</DialogTitle>
-              <DialogContent>
-                <DialogContentText>Make changes to the menu details:</DialogContentText>
-                <TextField
-                  autoFocus
-                  margin="dense"
-                  name="menuName"
-                  label="Menu Name"
-                  type="text"
-                  fullWidth
-                  variant="outlined"
-                  value={editingMenu?.menuName || ''} // Use optional chaining
-                  onChange={(e) => setEditingMenu((prevMenu) => ({ ...prevMenu, menuName: e.target.value }))}
-                  error={!!validationErrors.menuName}
-                  helperText={validationErrors.menuName}
-                />
-                <TextField
-                  margin="dense"
-                  name="menuDescription"
-                  label="Menu Description"
-                  type="text"
-                  fullWidth
-                  variant="outlined"
-                  value={editingMenu?.menuDescription || ''} // Use optional chaining
-                  onChange={(e) => setEditingMenu((prevMenu) => ({ ...prevMenu, menuDescription: e.target.value }))}
-                  error={!!validationErrors.menuDescription}
-                  helperText={validationErrors.menuDescription}
-                />
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={handleCloseEditMenuDialog}>Cancel</Button>
-                <Button onClick={() => handleSaveEdit(editingMenu?.menuId)} variant="contained">
-                  Save
-                </Button>
-              </DialogActions>
-            </Dialog>
-          </MainCard>
-        </Grid>
-      </Grid>
-    </Box>
+              <option value="" disabled></option>
+              {brandData.map((brand) => (
+                <option key={brand.brandId} value={brand.brandId}>
+                  {brand.brandName}
+                </option>
+              ))}
+            </TextField>
+            <TextField
+              margin="dense"
+              name="menuName"
+              label="Menu Name"
+              type="text"
+              fullWidth
+              variant="outlined"
+              value={newMenuData.menuName}
+              onChange={handleAddMenuChange} // Use handleAddMenuChange
+              required
+              error={!!validationErrors.menuName}
+              helperText={validationErrors.menuName}
+            />
+            <TextField
+              margin="dense"
+              name="menuDescription"
+              label="Menu Description"
+              type="text"
+              fullWidth
+              variant="outlined"
+              value={newMenuData.menuDescription}
+              onChange={handleAddMenuChange} // Use handleAddMenuChange
+              required
+              error={!!validationErrors.menuDescription}
+              helperText={validationErrors.menuDescription}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseAddMenuDialog}>Cancel</Button>
+            <Button onClick={handleAddMenu} variant="contained">
+              Add Menu
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Menu id="menu-actions" anchorEl={anchorEl} open={open} onClose={handleClose} MenuListProps={{ 'aria-labelledby': 'basic-button' }}>
+          <MenuItem onClick={() => handleEditMenu(selectedMenu)}>
+            <ListItemIcon>
+              <Edit fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Edit</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={handleDelete}>
+            <ListItemIcon>
+              <Delete fontSize="small" color="error" />
+            </ListItemIcon>
+            <ListItemText primary={<Typography color="error">Delete</Typography>} />
+          </MenuItem>
+        </Menu>
+        <Dialog open={showEditMenuDialog} onClose={handleCloseEditMenuDialog}>
+          <DialogTitle>Edit Menu</DialogTitle>
+          <DialogContent>
+            <DialogContentText>Make changes to the menu details:</DialogContentText>
+            <TextField
+              autoFocus
+              margin="dense"
+              name="menuName"
+              label="Menu Name"
+              type="text"
+              fullWidth
+              variant="outlined"
+              value={editingMenu?.menuName || ''} // Use optional chaining
+              onChange={(e) => setEditingMenu((prevMenu) => ({ ...prevMenu, menuName: e.target.value }))}
+              error={!!validationErrors.menuName}
+              helperText={validationErrors.menuName}
+            />
+            <TextField
+              margin="dense"
+              name="menuDescription"
+              label="Menu Description"
+              type="text"
+              fullWidth
+              variant="outlined"
+              value={editingMenu?.menuDescription || ''} // Use optional chaining
+              onChange={(e) => setEditingMenu((prevMenu) => ({ ...prevMenu, menuDescription: e.target.value }))}
+              error={!!validationErrors.menuDescription}
+              helperText={validationErrors.menuDescription}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseEditMenuDialog}>Cancel</Button>
+            <Button onClick={() => handleSaveEdit(editingMenu?.menuId)} variant="contained">
+              Save
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </MainCard>
+    </>
   );
 };
 
