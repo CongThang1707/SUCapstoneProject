@@ -6,7 +6,7 @@ import { ButtonBase } from '@mui/material';
 
 // project imports
 import config from 'config';
-import Logo from 'ui-component/Logo';
+// import Logo from 'ui-component/Logo';
 import { MENU_OPEN } from 'store/actions';
 
 // ==============================|| MAIN LOGO ||============================== //
@@ -16,7 +16,8 @@ const LogoSection = () => {
   const dispatch = useDispatch();
   return (
     <ButtonBase disableRipple onClick={() => dispatch({ type: MENU_OPEN, id: defaultId })} component={Link} to={config.defaultPath}>
-      <Logo />
+      {/* <Logo /> */}
+      <h1 style={{ color: 'purple', fontSize: '20px' }}>SMART MENU</h1>
     </ButtonBase>
   );
 };

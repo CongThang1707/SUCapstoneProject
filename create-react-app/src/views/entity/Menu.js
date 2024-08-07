@@ -253,7 +253,9 @@ const EntityMenu = () => {
               </Button>
             </Box>
             {isLoading ? (
-              <CircularProgress />
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+                <CircularProgress />
+              </Box>
             ) : (
               <Grid container spacing={3}>
                 {filteredMenus.map((menu) => (
