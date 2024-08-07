@@ -324,21 +324,6 @@ const UtilitiesBrand = () => {
       formData.append('tags', tags);
       formData.append('folder', folder);
       axios.post('https://api.cloudinary.com/v1_1/dchov8fes/image/upload', formData).then(async (result) => {
-        // const layerItemValue = result.data.secure_url;
-        // const layerId = await createLayer(templateId, 1);
-        // const layerItemId = await createLayerItem(layerId, layerItemValue);
-        // addImage(file, layerId);
-        // await createBox(layerId, 0).then((boxId) => {
-        //   addImage(file, boxId);
-        // })
-
-        // setAssetImage((prevImages) => [result.data, ...prevImages]);
-
-        // await createBox(layerId, 0);
-        // const public_id = result.data.public_id;
-
-        // setAssetImage((preImages) => [public_id, ...preImages]);
-
         const imageUrl = result.data.secure_url;
         setBrandImage(imageUrl);
         setNewBrandData((prevBrandData) => ({
@@ -350,13 +335,7 @@ const UtilitiesBrand = () => {
           brandImage: imageUrl
         }));
         console.log('Result hihi: ', result.data.secure_url);
-        // console.log('layerId: ', layerId);
-        // console.log('layerItemId: ', layerItemId);
-
-        // console.log('Response from cloudinary when upload image:', JSON.stringify(layerItemValue));
       });
-      // addImage(file, boxId);
-      // uploadWidget();
     }
   };
 
@@ -365,13 +344,13 @@ const UtilitiesBrand = () => {
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <MainCard title={<Typography variant="h5">Brand Table</Typography>}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <TextField
                 label="Search"
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
                 variant="outlined"
-                fullWidth
+                sx={{ marginBottom: '16px' }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -466,17 +445,6 @@ const UtilitiesBrand = () => {
             error={!!validationErrors.brandDescription}
             helperText={validationErrors.brandDescription}
           />
-          {/* <TextField
-            margin="dense"
-            label="Brand Image URL"
-            name="brandImage"
-            fullWidth
-            variant="outlined"
-            value={newBrandData.brandImage}
-            onChange={handleChange}
-            error={!!validationErrors.brandImage}
-            helperText={validationErrors.brandImage}
-          /> */}
           <Input
             type="file"
             name="brandImage"

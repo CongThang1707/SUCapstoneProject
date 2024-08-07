@@ -96,10 +96,10 @@ const MyMenuProductGroupDetails = ({ menuDataId }) => {
         await fetchProductData();
       } catch (error) {
         // Centralized error handling
-        console.error("Error fetching data:", error); 
+        console.error('Error fetching data:', error);
       }
     };
-  
+
     fetchDataAsync();
   }, []);
 
@@ -666,7 +666,6 @@ const MyMenuProductGroupDetails = ({ menuDataId }) => {
           </TableCell>
 
           <TableCell>
-
             {/* Delete ProductGroupItem */}
             <Button style={{ color: 'red' }} onClick={handleDeleteProductGroupClick}>
               <DeleteIcon />
@@ -682,7 +681,6 @@ const MyMenuProductGroupDetails = ({ menuDataId }) => {
                 <Button onClick={(e) => handleSubmitDeleteProductGroup(e, row)}>OK</Button>
               </DialogActions>
             </Dialog>
-
           </TableCell>
         </TableRow>
 
