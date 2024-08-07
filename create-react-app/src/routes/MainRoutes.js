@@ -25,6 +25,7 @@ const TemplateDetails = Loadable(lazy(() => import('views/sample-page/TemplateDe
 const MenuDetails = Loadable(lazy(() => import('views/sample-page/MenuDetails')));
 const CollectionDetails = Loadable(lazy(() => import('views/sample-page/CollectionDetails')));
 const BrandStaffDetails = Loadable(lazy(() => import('views/sample-page/BrandStaffDetails')));
+const AdminChooseTemplate = Loadable(lazy(() => import('views/sample-page/AdminChooseTemplate')));
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {

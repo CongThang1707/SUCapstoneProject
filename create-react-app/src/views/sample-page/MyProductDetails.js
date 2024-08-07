@@ -81,10 +81,10 @@ const MyProductDetails = () => {
       return;
     }
 
-    const existingSizeTypes = productSizePrices.map(sizePrice => sizePrice.productSizeType);
+    const existingSizeTypes = productSizePrices.map((sizePrice) => sizePrice.productSizeType);
     const newSizeType = parseInt(newSizePriceData.productSizeType, 10);
 
-    if (newSizeType === 3 && existingSizeTypes.some(type => type !== 3)) {
+    if (newSizeType === 3 && existingSizeTypes.some((type) => type !== 3)) {
       setSnackbarMessage('Cannot add Normal size when "S", "M", or "L" sizes exist.');
       setOpenSnackbar(true);
       return;

@@ -21,14 +21,13 @@ import {
   TextField,
   Typography,
   InputAdornment,
-  IconButton,
   CircularProgress,
   Box
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import Toastify from 'toastify-js';
 import 'toastify-js/src/toastify.css';
-import { Add } from '@mui/icons-material';
+import AddCircleOutlined from '@mui/icons-material/AddCircleOutlined';
 
 const UtilitiesShadow = () => {
   const [storeData, setStoreData] = useState([]);
@@ -191,18 +190,16 @@ const UtilitiesShadow = () => {
   return (
     <div>
       <MainCard title="Store Table">
-        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <TextField
             variant="outlined"
-            size="small"
             value={searchQuery}
             onChange={handleSearchChange}
+            sx={{ marginBottom: '16px' }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <IconButton disabled sx={{ p: 0 }}>
-                    <SearchIcon />
-                  </IconButton>
+                  <SearchIcon />
                 </InputAdornment>
               )
             }}
@@ -211,7 +208,7 @@ const UtilitiesShadow = () => {
             variant="contained"
             onClick={() => setShowAddStoreDialog(true)}
             sx={{ mb: 2, color: 'white' }}
-            startIcon={<Add />}
+            startIcon={<AddCircleOutlined />}
             color="success"
           >
             Add Store

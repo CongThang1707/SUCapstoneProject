@@ -1,11 +1,12 @@
 // assets
-import { IconTemplate, IconToolsKitchen2, IconCooker } from '@tabler/icons-react';
+import { IconTemplate, IconToolsKitchen2, IconCooker, IconFile } from '@tabler/icons-react';
 
 // constant
 const icons = {
   IconTemplate,
   IconToolsKitchen2,
-  IconCooker
+  IconCooker,
+  IconFile
 };
 
 // ==============================|| ENTITIES MENU ITEMS ||============================== //
@@ -44,7 +45,7 @@ const entities = {
       title: 'Font',
       type: 'item',
       url: '/entities/entity-font',
-      icon: icons.IconCooker,
+      icon: icons.IconFile,
       breadcrumbs: false
     }
   ]

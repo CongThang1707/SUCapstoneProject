@@ -22,7 +22,9 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
-  CircularProgress
+  CircularProgress,
+  Input,
+  FormHelperText
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { AddCircleOutlined, Edit, Delete } from '@mui/icons-material';
@@ -49,6 +51,7 @@ const UtilitiesBrand = () => {
   const [validationErrors, setValidationErrors] = useState({});
   const [filter, setFilter] = useState('');
   const [selectedBrand, setSelectedBrand] = useState(null);
+  const [brandImage, setBrandImage] = useState(false);
 
   const validateNewBrandData = () => {
     const errors = {};
@@ -113,7 +116,7 @@ const UtilitiesBrand = () => {
     }
 
     try {
-      const response = await axios.post('https://3.1.81.96/api/Brands', newBrandData);
+      const response = await axios.post('https://3.1.81.96/api/Brands', { ...newBrandData, brandImage: brandImage });
       if (response.status === 201) {
         setNewBrandData({
           brandName: '',
@@ -122,13 +125,7 @@ const UtilitiesBrand = () => {
           brandContactEmail: ''
         });
         setShowAddBrandDialog(false);
-        const updatedResponse = await axios.get('https://3.1.81.96/api/Brands', {
-          params: {
-            pageNumber: 1,
-            pageSize: 1000
-          }
-        });
-        setBrandData(updatedResponse.data);
+        fetchBrandData();
         Toastify({
           text: 'Brand added successfully!',
           duration: 3000,
@@ -166,9 +163,12 @@ const UtilitiesBrand = () => {
     }
     if (!selectedBrand) return;
     try {
-      const response = await axios.put(`https://3.1.81.96/api/Brands/${selectedBrand.brandId}`, updateBrandData);
+      const response = await axios.put(`https://3.1.81.96/api/Brands/${selectedBrand.brandId}`, {
+        ...updateBrandData,
+        brandImage: brandImage
+      });
       if (response.status === 200) {
-        setBrandData(brandData.map((brand) => (brand.brandId === selectedBrand.brandId ? { ...brand, ...updateBrandData } : brand)));
+        fetchBrandData();
         Toastify({
           text: 'Brand updated successfully!',
           duration: 3000,
@@ -279,26 +279,28 @@ const UtilitiesBrand = () => {
   const handleOpenUpdateDialog = (brand) => {
     setSelectedBrand(brand);
     setUpdateBrandData({
-      brandDescription: brand.brandDescription || '',
-      brandImage: brand.brandImage || ''
+      brandDescription: brand.brandDescription,
+      brandImage: brand.brandImage
     });
     setShowUpdateBrandDialog(true);
+    setBrandImage(brand.brandImage);
+  };
+
+  const fetchBrandData = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await axios.get('https://3.1.81.96/api/Brands?pageNumber=1&pageSize=10');
+      setBrandData(response.data);
+    } catch (error) {
+      console.error('Error fetching brand data:', error);
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
-    const fetchBrandData = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const response = await axios.get('https://3.1.81.96/api/Brands?pageNumber=1&pageSize=10');
-        setBrandData(response.data);
-      } catch (error) {
-        console.error('Error fetching brand data:', error);
-        setError(error.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchBrandData();
   }, []);
 
@@ -308,84 +310,116 @@ const UtilitiesBrand = () => {
     );
   });
 
+  const handleImageUpload = async (event) => {
+    const userId = 469;
+    const file = event.target.files[0];
+    const formData = new FormData();
+    const preset_key = 'xdm798lx';
+    const folder = `users/${userId}`;
+    const tags = `${userId}`;
+    if (file) {
+      // const url = URL.createObjectURL(file);
+      formData.append('file', file);
+      formData.append('upload_preset', preset_key);
+      formData.append('tags', tags);
+      formData.append('folder', folder);
+      axios.post('https://api.cloudinary.com/v1_1/dchov8fes/image/upload', formData).then(async (result) => {
+        const imageUrl = result.data.secure_url;
+        setBrandImage(imageUrl);
+        setNewBrandData((prevBrandData) => ({
+          ...prevBrandData,
+          brandImage: imageUrl
+        }));
+        setUpdateBrandData((prevBrandData) => ({
+          ...prevBrandData,
+          brandImage: imageUrl
+        }));
+        console.log('Result hihi: ', result.data.secure_url);
+      });
+    }
+  };
+
   return (
-    <Box sx={{ flexGrow: 1, p: 3 }}>
-      <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <MainCard title={<Typography variant="h5">Brand Table</Typography>}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 2 }}>
-              <TextField
-                label="Search"
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                variant="outlined"
-                fullWidth
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
-                  )
-                }}
-              />
-              <Button variant="contained" color="primary" startIcon={<AddCircleOutlined />} onClick={() => setShowAddBrandDialog(true)}>
-                Add Brand
-              </Button>
-            </Box>
-            {isLoading ? (
-              <CircularProgress />
-            ) : (
-              <TableContainer component={Paper}>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Brand Image</TableCell>
-                      <TableCell>Brand Name</TableCell>
-                      <TableCell>Brand Description</TableCell>
-                      <TableCell>Contact Email</TableCell>
-                      <TableCell>Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {filteredBrandData.map((brand) => (
-                      <TableRow key={brand.brandId}>
-                        <TableCell>
-                          <Avatar src={brand.brandImage} sx={{ width: 56, height: 56 }} />
-                        </TableCell>
-                        <TableCell>{brand.brandName}</TableCell>
-                        <TableCell>{brand.brandDescription}</TableCell>
-                        <TableCell>{brand.brandContactEmail}</TableCell>
-                        <TableCell>
-                          <Stack direction="row" spacing={1}>
-                            <Button
-                              variant="contained"
-                              color="info"
-                              size="small"
-                              onClick={() => handleOpenUpdateDialog(brand)}
-                              startIcon={<Edit />}
-                            >
-                              Edit
-                            </Button>
-                            <Button
-                              variant="contained"
-                              color="error"
-                              size="small"
-                              onClick={() => handleOpenDeleteConfirmDialog(brand)}
-                              startIcon={<Delete />}
-                            >
-                              Delete
-                            </Button>
-                          </Stack>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
-          </MainCard>
-        </Grid>
-      </Grid>
+    <>
+      <MainCard title="Brand Table">
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <TextField
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            variant="outlined"
+            sx={{ marginBottom: '16px' }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              )
+            }}
+          />
+          <Button
+            variant="contained"
+            color="success"
+            startIcon={<AddCircleOutlined />}
+            onClick={() => setShowAddBrandDialog(true)}
+            sx={{ mb: 2, color: 'white' }}
+          >
+            Add Brand
+          </Button>
+        </Box>
+        {isLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Brand Image</TableCell>
+                  <TableCell>Brand Name</TableCell>
+                  <TableCell>Brand Description</TableCell>
+                  <TableCell>Contact Email</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredBrandData.map((brand) => (
+                  <TableRow key={brand.brandId}>
+                    <TableCell>
+                      <Avatar src={brand.brandImage} sx={{ width: 56, height: 56 }} />
+                    </TableCell>
+                    <TableCell>{brand.brandName}</TableCell>
+                    <TableCell>{brand.brandDescription}</TableCell>
+                    <TableCell>{brand.brandContactEmail}</TableCell>
+                    <TableCell>
+                      <Stack direction="row" spacing={1}>
+                        <Button
+                          variant="contained"
+                          color="info"
+                          size="small"
+                          onClick={() => handleOpenUpdateDialog(brand)}
+                          startIcon={<Edit />}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="contained"
+                          color="error"
+                          size="small"
+                          onClick={() => handleOpenDeleteConfirmDialog(brand)}
+                          startIcon={<Delete />}
+                        >
+                          Delete
+                        </Button>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </MainCard>
 
       <Dialog open={showAddBrandDialog} onClose={handleCloseAddBrandDialog}>
         <DialogTitle>Add New Brand</DialogTitle>
@@ -414,17 +448,17 @@ const UtilitiesBrand = () => {
             error={!!validationErrors.brandDescription}
             helperText={validationErrors.brandDescription}
           />
-          <TextField
-            margin="dense"
-            label="Brand Image URL"
+          <Input
+            type="file"
             name="brandImage"
+            accept="image/*"
+            onChange={handleImageUpload}
             fullWidth
-            variant="outlined"
-            value={newBrandData.brandImage}
-            onChange={handleChange}
+            margin="dense"
             error={!!validationErrors.brandImage}
-            helperText={validationErrors.brandImage}
+            required
           />
+          <FormHelperText error={!!validationErrors.brandImage}>{validationErrors.brandImage}</FormHelperText>
           <TextField
             margin="dense"
             label="Brand Contact Email"
@@ -459,18 +493,17 @@ const UtilitiesBrand = () => {
             error={!!validationErrors.brandDescription}
             helperText={validationErrors.brandDescription}
           />
-          <TextField
-            margin="dense"
-            label="Brand Image URL"
+          <Input
+            type="file"
             name="brandImage"
+            accept="image/*"
+            onChange={handleImageUpload}
             fullWidth
-            variant="outlined"
-            value={updateBrandData.brandImage}
-            onChange={handleUpdateChange}
-            required
+            margin="dense"
             error={!!validationErrors.brandImage}
-            helperText={validationErrors.brandImage}
+            required
           />
+          <FormHelperText error={!!validationErrors.brandImage}>{validationErrors.brandImage}</FormHelperText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseUpdateBrandDialog}>Cancel</Button>
@@ -492,7 +525,7 @@ const UtilitiesBrand = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </>
   );
 };
 

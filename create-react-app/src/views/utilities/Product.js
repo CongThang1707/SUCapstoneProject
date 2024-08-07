@@ -24,7 +24,9 @@ import {
   Box,
   Typography,
   Grid,
-  MenuItem
+  MenuItem,
+  Input,
+  FormHelperText
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { AddCircleOutlined, Visibility, Delete } from '@mui/icons-material';
@@ -50,11 +52,11 @@ const UtilitiesProduct = () => {
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [validationErrors, setValidationErrors] = useState({});
   const [productsByCategory, setProductsByCategory] = useState({});
-
+  const [productImgPath, setProductImgPath] = useState(false);
+  const [productLogoPath, setProductLogoPath] = useState(false);
 
   const validateNewProductData = () => {
     const errors = {};
-  
 
     if (!newProductData.categoryId) {
       errors.categoryId = 'Category is required';
@@ -65,37 +67,38 @@ const UtilitiesProduct = () => {
     } else if (newProductData.productName.trim().length > 100) {
       errors.productName = 'Product name must be 100 characters or less';
     }
-  
+
     if (!newProductData.productDescription.trim()) {
       errors.productDescription = 'Product description is required';
     } else if (newProductData.productDescription.trim().length > 200) {
       errors.productDescription = 'Product description must be 200 characters or less';
     }
-  
+
     const categoryProducts = productsByCategory[newProductData.categoryId] || [];
     const duplicateProduct = categoryProducts.find((product) => product.productName === newProductData.productName);
-  
+
     if (duplicateProduct) {
       errors.productName = 'A product with this name already exists in the selected category.';
     }
-  
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
   const handleAddProduct = async () => {
     if (!validateNewProductData()) {
-      return; 
+      return;
     }
     try {
       const payload = {
         ...newProductData,
-        productPriceCurrency: parseFloat(newProductData.productPriceCurrency)
+        productPriceCurrency: parseFloat(newProductData.productPriceCurrency),
+        productImgPath: productImgPath,
+        productLogoPath: productLogoPath
       };
 
       console.log('Payload being sent to API:', payload);
       const response = await axios.post('https://3.1.81.96/api/Products', payload);
       if (response.status === 201) {
-
         setNewProductData({
           categoryID: '',
           productName: '',
@@ -106,7 +109,6 @@ const UtilitiesProduct = () => {
         });
         setShowAddProductDialog(false);
 
-        
         const [updatedProductResponse, categoryResponse] = await Promise.all([
           axios.get('https://3.1.81.96/api/Products?pageNumber=1&pageSize=100'),
           axios.get('https://3.1.81.96/api/Categories?pageNumber=1&pageSize=100')
@@ -172,6 +174,7 @@ const UtilitiesProduct = () => {
   const handleChange = (event) => {
     const { name, value } = event.target;
     setNewProductData((prevState) => ({ ...prevState, [name]: value }));
+    setValidationErrors((prevErrors) => ({ ...prevErrors, [name]: '' }));
   };
 
   const handleCloseAddProductDialog = () => {
@@ -233,11 +236,9 @@ const UtilitiesProduct = () => {
     try {
       const response = await axios.delete(`https://3.1.81.96/api/Products/${productId}`);
       if (response.status === 200) {
-        // Successfully deleted product
         const updatedProductData = productData.filter((product) => product.productId !== productId);
         setProductData(updatedProductData);
 
-        // Update productsByCategory
         const updatedProductsByCategory = updatedProductData.reduce((acc, product) => {
           if (!acc[product.categoryId]) acc[product.categoryId] = [];
           acc[product.categoryId].push(product);
@@ -268,117 +269,144 @@ const UtilitiesProduct = () => {
     return productNameMatch || categoryIdMatch;
   });
 
+  const handleImageUpload = async (event) => {
+    const userId = 469;
+    const file = event.target.files[0];
+    const formData = new FormData();
+    const preset_key = 'xdm798lx';
+    const folder = `users/${userId}`;
+    const tags = `${userId}`;
+    if (file) {
+      formData.append('file', file);
+      formData.append('upload_preset', preset_key);
+      formData.append('tags', tags);
+      formData.append('folder', folder);
+      axios.post('https://api.cloudinary.com/v1_1/dchov8fes/image/upload', formData).then(async (result) => {
+        const imageUrl = result.data.secure_url;
+        setProductImgPath(imageUrl);
+        setNewProductData((prevProduct) => ({
+          ...prevProduct,
+          productImgPath: imageUrl
+        }));
+        console.log('Result hihi: ', result.data.secure_url);
+      });
+    }
+  };
+
+  const handleImageUploadLogo = async (event) => {
+    const userId = 469;
+    const file = event.target.files[0];
+    const formData = new FormData();
+    const preset_key = 'xdm798lx';
+    const folder = `users/${userId}`;
+    const tags = `${userId}`;
+    if (file) {
+      formData.append('file', file);
+      formData.append('upload_preset', preset_key);
+      formData.append('tags', tags);
+      formData.append('folder', folder);
+      axios.post('https://api.cloudinary.com/v1_1/dchov8fes/image/upload', formData).then(async (result) => {
+        const imageUrl = result.data.secure_url;
+        setProductLogoPath(imageUrl);
+        setNewProductData((prevProduct) => ({
+          ...prevProduct,
+          productLogoPath: imageUrl
+        }));
+      });
+    }
+  };
+
   return (
-    <Box sx={{ flexGrow: 1, p: 3 }}>
-      <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <MainCard title={<Typography variant="h5">Product Table</Typography>}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <TextField
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                variant="outlined"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
-                  )
-                }}
-                sx={{
-                  width: '500px',
-                  mr: 60, // Set a fixed width (adjust as needed)
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    paddingRight: 1
-                  }
-                }}
-              />
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => setShowAddProductDialog(true)}
-                startIcon={<AddCircleOutlined />}
-                sx={{
-                  borderRadius: 2,
-                  boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  px: 2, // Increase horizontal padding further
-                  py: 1.5,
-                  whiteSpace: 'nowrap' // Prevent text from wrapping
-                }}
-                size="small"
-              >
-                Add Product
-              </Button>
-            </Box>
-            {isLoading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
-                <CircularProgress />
-              </div>
-            ) : (
-              <TableContainer component={Paper} sx={{ maxHeight: 450, overflowY: 'auto' }}>
-                <Table stickyHeader aria-label="sticky table">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Name</TableCell>
-                      <TableCell>Description</TableCell>
-                      <TableCell>Price Currency</TableCell>
-                      <TableCell>Image</TableCell>
-                      <TableCell>Logo</TableCell>
-                      <TableCell>Category</TableCell>
-                      <TableCell>Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {filteredProductData.map((product) => (
-                      <TableRow key={product.productId}>
-                        <TableCell>{product.productName}</TableCell>
-                        <TableCell>{product.productDescription}</TableCell>
-                        <TableCell>
-                          {(product.productPriceCurrency === 0 ? 'USD' : product.productPriceCurrency === 1 ? 'VND' : null) ?? 'Unknown'}
-                        </TableCell>
-                        <TableCell>
-                          {product.productImgPath ? (
-                            <img
-                              src={product.productImgPath}
-                              alt={`${product.productName}`}
-                              style={{ width: '100px', height: '100px', objectFit: 'cover' }}
-                            />
-                          ) : (
-                            'No Image'
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {product.productLogoPath ? (
-                            <img
-                              src={product.productLogoPath}
-                              alt={`${product.productName} logo`}
-                              style={{ width: '30px', height: '30px', objectFit: 'cover' }}
-                            />
-                          ) : (
-                            'No Logo'
-                          )}
-                        </TableCell>
-                        <TableCell>{categoryMap[product.categoryId]}</TableCell>
-                        <TableCell>
-                          <Button color="primary" onClick={() => handleViewDetails(product)} startIcon={<Visibility />} sx={{ mr: 1 }}>
-                            View
-                          </Button>
-                          <Button color="error" onClick={() => handleDelete(product.productId)} startIcon={<Delete />}>
-                            Delete
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
-          </MainCard>
-        </Grid>
-      </Grid>
+    <>
+      <MainCard title="Product Table">
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <TextField
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            variant="outlined"
+            sx={{ marginBottom: '16px' }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              )
+            }}
+          />
+          <Button
+            variant="contained"
+            color="success"
+            onClick={() => setShowAddProductDialog(true)}
+            startIcon={<AddCircleOutlined />}
+            sx={{ mb: 2, color: 'white' }}
+          >
+            Add Product
+          </Button>
+        </Box>
+        {isLoading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+            <CircularProgress />
+          </div>
+        ) : (
+          <TableContainer component={Paper} sx={{ maxHeight: 450, overflowY: 'auto' }}>
+            <Table stickyHeader aria-label="sticky table">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Description</TableCell>
+                  <TableCell>Price Currency</TableCell>
+                  <TableCell>Image</TableCell>
+                  <TableCell>Logo</TableCell>
+                  <TableCell>Category</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredProductData.map((product) => (
+                  <TableRow key={product.productId}>
+                    <TableCell>{product.productName}</TableCell>
+                    <TableCell>{product.productDescription}</TableCell>
+                    <TableCell>
+                      {(product.productPriceCurrency === 0 ? 'USD' : product.productPriceCurrency === 1 ? 'VND' : null) ?? 'Unknown'}
+                    </TableCell>
+                    <TableCell>
+                      {product.productImgPath ? (
+                        <img
+                          src={product.productImgPath}
+                          alt={`${product.productName}`}
+                          style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        'No Image'
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {product.productLogoPath ? (
+                        <img
+                          src={product.productLogoPath}
+                          alt={`${product.productName} logo`}
+                          style={{ width: '30px', height: '30px', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        'No Logo'
+                      )}
+                    </TableCell>
+                    <TableCell>{categoryMap[product.categoryId]}</TableCell>
+                    <TableCell>
+                      <Button color="primary" onClick={() => handleViewDetails(product)} startIcon={<Visibility />} sx={{ mr: 1 }}>
+                        View
+                      </Button>
+                      <Button color="error" onClick={() => handleDelete(product.productId)} startIcon={<Delete />}>
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </MainCard>
 
       <Dialog open={showAddProductDialog} onClose={handleCloseAddProductDialog}>
         <DialogTitle>Add New Product</DialogTitle>
@@ -450,32 +478,26 @@ const UtilitiesProduct = () => {
             <MenuItem value={0}>USD</MenuItem>
             <MenuItem value={1}>VND</MenuItem>
           </TextField>
-          <TextField
-            margin="dense"
-            id="productImgPath"
+          <Input
+            type="file"
             name="productImgPath"
-            label="Product Image"
-            type="text"
-            fullWidth
-            variant="outlined"
-            value={newProductData.productImgPath}
-            onChange={handleChange}
+            accept="image/*"
+            onChange={handleImageUpload}
             error={!!validationErrors.productImgPath}
-            helperText={validationErrors.productImgPath}
-          />
-          <TextField
-            margin="dense"
-            id="productLogoPath"
-            name="productLogoPath"
-            label="Product Logo"
-            type="text"
             fullWidth
-            variant="outlined"
-            value={newProductData.productLogoPath}
-            onChange={handleChange}
-            error={!!validationErrors.productLogoPath}
-            helperText={validationErrors.productLogoPath}
+            margin="dense"
           />
+          <FormHelperText error={!!validationErrors.productImgPath}>{validationErrors.productImgPath}</FormHelperText>
+          <Input
+            type="file"
+            name="productLogoPath"
+            accept="image/*"
+            onChange={handleImageUploadLogo}
+            error={!!validationErrors.productLogoPath}
+            fullWidth
+            margin="dense"
+          />
+          <FormHelperText error={!!validationErrors.productLogoPath}>{validationErrors.productLogoPath}</FormHelperText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseAddProductDialog}>Cancel</Button>
@@ -483,7 +505,6 @@ const UtilitiesProduct = () => {
             Add
           </Button>
         </DialogActions>
-
       </Dialog>
 
       <Snackbar open={openSnackbar} autoHideDuration={3000} onClose={() => setOpenSnackbar(false)}>
@@ -491,7 +512,7 @@ const UtilitiesProduct = () => {
           {snackbarMessage}
         </Alert>
       </Snackbar>
-    </Box>
+    </>
   );
 };
 

@@ -17,7 +17,9 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  MenuItem
+  MenuItem,
+  Input,
+  FormHelperText
 } from '@mui/material';
 import { Edit, Delete, Add, Visibility } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -51,34 +53,33 @@ const MyProduct = () => {
   const [productToDelete, setProductToDelete] = useState(null);
   const navigate = useNavigate();
   const [validationErrors, setValidationErrors] = useState({});
+  const [productImgPath, setProductImgPath] = useState(false);
+  const [productLogoPath, setProductLogoPath] = useState(false);
 
   const validateNewProductData = () => {
     const errors = {};
-
-
     if (!newProduct.categoryId) {
       errors.categoryId = 'Category is required';
     }
-
     if (!newProduct.productName.trim()) {
       errors.productName = 'Product name is required';
     } else if (newProduct.productName.trim().length > 100) {
       errors.productName = 'Product name must be 100 characters or less';
     }
-
     if (!newProduct.productDescription.trim()) {
       errors.productDescription = 'Product description is required';
     } else if (newProduct.productDescription.trim().length > 200) {
       errors.productDescription = 'Product description must be 200 characters or less';
     }
-
-    const categoryProducts = productsByCategory[newProduct.categoryId] || [];
-    const duplicateProduct = categoryProducts.find((product) => product.productName === newProduct.productName);
-
-    if (duplicateProduct) {
-      errors.productName = 'A product with this name already exists in the selected category.';
+    if (!newProduct.productPriceCurrency && newProduct.productPriceCurrency !== 0) {
+      errors.productPriceCurrency = 'Product price currency is required';
     }
-
+    if (!newProduct.productImgPath) {
+      errors.productImgPath = 'Product image path is required';
+    }
+    if (!newProduct.productLogoPath) {
+      errors.productLogoPath = 'Product logo path is required';
+    }
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -94,6 +95,15 @@ const MyProduct = () => {
       errors.productDescription = 'Product description is required';
     } else if (productToEdit.productDescription.trim().length > 200) {
       errors.productDescription = 'Product description must be 200 characters or less';
+    }
+    if (!productToEdit.productPriceCurrency && productToEdit.productPriceCurrency !== 0) {
+      errors.productPriceCurrency = 'Product price currency is required';
+    }
+    if (!productToEdit.productImgPath) {
+      errors.productImgPath = 'Product image path is required';
+    }
+    if (!productToEdit.productLogoPath) {
+      errors.productLogoPath = 'Product logo path is required';
     }
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
@@ -142,8 +152,8 @@ const MyProduct = () => {
       productName: '',
       productDescription: '',
       productPriceCurrency: '',
-      productImgPath: '',
-      productLogoPath: ''
+      productImgPath: null,
+      productLogoPath: null
     });
     setValidationErrors({});
   };
@@ -168,7 +178,8 @@ const MyProduct = () => {
       const payload = {
         ...newProduct,
         productPriceCurrency: parseFloat(newProduct.productPriceCurrency),
-
+        productImgPath: productImgPath,
+        productLogoPath: productLogoPath
       };
       console.log('payload:', payload);
       await axios.post('https://3.1.81.96/api/Products', payload);
@@ -189,7 +200,10 @@ const MyProduct = () => {
 
   const handleOpenEditDialog = (product) => {
     setProductToEdit(product);
+    setProductImgPath(product.productImgPath);
+    setProductLogoPath(product.productLogoPath);
     setOpenEditDialog(true);
+    console.log('productToEdit:', product);
   };
 
   const handleCloseEditDialog = () => {
@@ -215,7 +229,13 @@ const MyProduct = () => {
       return;
     }
     try {
-      await axios.put(`https://3.1.81.96/api/Products/${productToEdit.productId}`, productToEdit);
+      const payload = {
+        ...productToEdit,
+        productPriceCurrency: parseFloat(productToEdit.productPriceCurrency),
+        productImgPath: productImgPath,
+        productLogoPath: productLogoPath
+      };
+      await axios.put(`https://3.1.81.96/api/Products/${productToEdit.productId}`, payload);
       const response = await axios.get('https://3.1.81.96/api/Products', {
         params: {
           pageNumber: 1,
@@ -264,6 +284,61 @@ const MyProduct = () => {
     }
   };
 
+  const handleImageUpload = async (event) => {
+    const userId = 469;
+    const file = event.target.files[0];
+    const formData = new FormData();
+    const preset_key = 'xdm798lx';
+    const folder = `users/${userId}`;
+    const tags = `${userId}`;
+    if (file) {
+      formData.append('file', file);
+      formData.append('upload_preset', preset_key);
+      formData.append('tags', tags);
+      formData.append('folder', folder);
+      axios.post('https://api.cloudinary.com/v1_1/dchov8fes/image/upload', formData).then(async (result) => {
+        const imageUrl = result.data.secure_url;
+        setProductImgPath(imageUrl);
+        setNewProduct((prevProduct) => ({
+          ...prevProduct,
+          productImgPath: imageUrl
+        }));
+        setProductToEdit((prevProduct) => ({
+          ...prevProduct,
+          productImgPath: imageUrl
+        }));
+        console.log('Result hihi: ', result.data.secure_url);
+      });
+    }
+  };
+
+  const handleImageUploadLogo = async (event) => {
+    const userId = 469;
+    const file = event.target.files[0];
+    const formData = new FormData();
+    const preset_key = 'xdm798lx';
+    const folder = `users/${userId}`;
+    const tags = `${userId}`;
+    if (file) {
+      formData.append('file', file);
+      formData.append('upload_preset', preset_key);
+      formData.append('tags', tags);
+      formData.append('folder', folder);
+      axios.post('https://api.cloudinary.com/v1_1/dchov8fes/image/upload', formData).then(async (result) => {
+        const imageUrl = result.data.secure_url;
+        setProductLogoPath(imageUrl);
+        setNewProduct((prevProduct) => ({
+          ...prevProduct,
+          productLogoPath: imageUrl
+        }));
+        setProductToEdit((prevProduct) => ({
+          ...prevProduct,
+          productLogoPath: imageUrl
+        }));
+      });
+    }
+  };
+
   return (
     <Box sx={{ flexGrow: 1, p: 3 }}>
       <Button variant="contained" color="primary" startIcon={<Add />} onClick={handleOpenAddDialog} sx={{ mb: 2 }}>
@@ -295,7 +370,9 @@ const MyProduct = () => {
                   <TableRow key={product.productId}>
                     <TableCell>{product.productName}</TableCell>
                     <TableCell>{product.productDescription}</TableCell>
-                    <TableCell>{(product.productPriceCurrency === 0 ? 'USD' : product.productPriceCurrency === 1 ? 'VND' : null) ?? 'Unknown'}</TableCell>
+                    <TableCell>
+                      {(product.productPriceCurrency === 0 ? 'USD' : product.productPriceCurrency === 1 ? 'VND' : null) ?? 'Unknown'}
+                    </TableCell>
                     <TableCell>
                       {product.productImgPath ? (
                         <img
@@ -415,40 +492,33 @@ const MyProduct = () => {
                 variant="outlined"
                 value={newProduct.productPriceCurrency}
                 onChange={handleInputChange}
+                required
+                error={!!validationErrors.productPriceCurrency}
+                helperText={validationErrors.productPriceCurrency}
               >
                 <MenuItem value={0}>USD</MenuItem>
                 <MenuItem value={1}>VND</MenuItem>
               </TextField>
-              <TextField
-                autoFocus
-                margin="dense"
+              <Input
+                type="file"
                 name="productImgPath"
-                label="Image"
-                type="text"
-                fullWidth
-                variant="outlined"
-                value={newProduct.productImgPath}
-                onChange={handleInputChange}
-                sx={{ mb: 2 }}
-                required
+                accept="image/*"
+                onChange={handleImageUpload}
                 error={!!validationErrors.productImgPath}
-                helperText={validationErrors.productImgPath}
-              />
-              <TextField
-                autoFocus
-                margin="dense"
-                name="productLogoPath"
-                label="Logo"
-                type="text"
                 fullWidth
-                variant="outlined"
-                value={newProduct.productLogoPath}
-                onChange={handleInputChange}
-                sx={{ mb: 2 }}
-                required
-                error={!!validationErrors.productLogoPath}
-                helperText={validationErrors.productLogoPath}
+                margin="dense"
               />
+              <FormHelperText error={!!validationErrors.productImgPath}>{validationErrors.productImgPath}</FormHelperText>
+              <Input
+                type="file"
+                name="productLogoPath"
+                accept="image/*"
+                onChange={handleImageUploadLogo}
+                error={!!validationErrors.productLogoPath}
+                fullWidth
+                margin="dense"
+              />
+              <FormHelperText error={!!validationErrors.productLogoPath}>{validationErrors.productLogoPath}</FormHelperText>
             </DialogContent>
             <DialogActions>
               <Button onClick={handleCloseAddDialog}>Cancel</Button>
@@ -469,7 +539,6 @@ const MyProduct = () => {
                 variant="outlined"
                 value={productToEdit?.productName || ''}
                 onChange={handleEditInputChange}
-                sx={{ mb: 2 }}
                 required
                 error={!!validationErrors.productName}
                 helperText={validationErrors.productName}
@@ -496,36 +565,33 @@ const MyProduct = () => {
                 variant="outlined"
                 value={productToEdit?.productPriceCurrency || ''}
                 onChange={handleEditInputChange}
+                required
+                error={!!validationErrors.productPriceCurrency}
+                helperText={validationErrors.productPriceCurrency}
               >
                 <MenuItem value={0}>USD</MenuItem>
                 <MenuItem value={1}>VND</MenuItem>
               </TextField>
-              <TextField
-                margin="dense"
-                name="productImgPath"
-                label="Image"
-                type="text"
-                fullWidth
-                variant="outlined"
-                value={productToEdit?.productImgPath || ''}
-                onChange={handleEditInputChange}
-                required
+              <Input
+                type="file"
+                name="productImgFile"
+                accept="image/*"
+                onChange={handleImageUpload}
                 error={!!validationErrors.productImgPath}
-                helperText={validationErrors.productImgPath}
-              />
-              <TextField
-                margin="dense"
-                name="productLogoPath"
-                label="Logo"
-                type="text"
                 fullWidth
-                variant="outlined"
-                value={productToEdit?.productLogoPath || ''}
-                onChange={handleEditInputChange}
-                required
-                error={!!validationErrors.productLogoPath}
-                helperText={validationErrors.productLogoPath}
+                margin="dense"
               />
+              <FormHelperText error={!!validationErrors.productImgPath}>{validationErrors.productImgPath}</FormHelperText>
+              <Input
+                type="file"
+                name="productLogoFile"
+                accept="image/*"
+                onChange={handleImageUploadLogo}
+                error={!!validationErrors.productLogoPath}
+                fullWidth
+                margin="dense"
+              />
+              <FormHelperText error={!!validationErrors.productLogoPath}>{validationErrors.productLogoPath}</FormHelperText>
             </DialogContent>
             <DialogActions>
               <Button onClick={handleCloseEditDialog}>Cancel</Button>
@@ -542,7 +608,7 @@ const MyProduct = () => {
               <Button onClick={handleCloseConfirmDialog}>Cancel</Button>
               <Button onClick={handleDeleteProduct} color="error">
                 Delete
-              </Button>a
+              </Button>
             </DialogActions>
           </Dialog>
         </>

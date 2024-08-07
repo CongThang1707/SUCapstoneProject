@@ -141,7 +141,7 @@ const EntityFont = () => {
   );
 
   return (
-    <MainCard title={<Typography variant="h5">Fonts</Typography>}>
+    <MainCard title="Fonts">
       <Box sx={{ flexGrow: 1, p: 3 }}>
         {isLoading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
@@ -152,7 +152,13 @@ const EntityFont = () => {
         ) : (
           <>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-              <Button variant="contained" color="primary" onClick={handleUploadClick} startIcon={<UploadIcon />}>
+              <Button
+                variant="contained"
+                color="success"
+                onClick={handleUploadClick}
+                startIcon={<UploadIcon />}
+                sx={{ mb: 2, color: 'white' }}
+              >
                 Upload Font
               </Button>
             </Box>
