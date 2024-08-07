@@ -603,7 +603,7 @@ const MyCollection = () => {
   };
 
   const handleViewDetails = (collection) => {
-    navigate('/collection-details', { state: { collectionData: collection } });
+    navigate('/my-collection-details', { state: { collectionData: collection } });
   };
 
   const filteredCollectionData = collectionData.filter((collection) => {

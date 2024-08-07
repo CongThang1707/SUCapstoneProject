@@ -36,21 +36,17 @@ const UtilitiesBrandStaff = () => {
   const [, setUserData] = useState([]);
   const [open, setOpen] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false); // State for delete confirmation dialog
-  const [userToDelete, setUserToDelete] = useState(null);
   const [newUser, setNewUser] = useState({
     userName: '',
     password: '',
     email: '',
-    role: 1
+    role: 2
   });
-  const [brands, setBrands] = useState([]);
   const [, setStores] = useState([]); // State for stores
-  const [selectedUser, setSelectedUser] = useState(null);
   const [assignData, setAssignData] = useState({
-    brandId: '',
+    brandId: localStorage.getItem('brandId'),
     userId: '',
-    storeId: 0
+    storeId: ''
   });
   const navigate = useNavigate();
   const [validationErrors, setValidationErrors] = useState({});
@@ -75,10 +71,7 @@ const UtilitiesBrandStaff = () => {
 
   const validateAssignData = () => {
     const errors = {};
-    if (!assignData.brandId) {
-      errors.brandId = 'Brand is required';
-    }
-    if (selectedUser?.role === 2 && !assignData.storeId) {
+    if (!assignData.storeId) {
       errors.storeId = 'Store is required';
     }
     setValidationErrors(errors);
@@ -89,52 +82,59 @@ const UtilitiesBrandStaff = () => {
     setIsLoading(true);
     setError(null);
 
+    const brandId = localStorage.getItem('brandId');
+    const numericBrandId = Number(brandId);
+
+    // Kiểm tra nếu brandId hợp lệ
+    if (isNaN(numericBrandId)) {
+      throw new Error('Invalid brandId');
+    }
+
     try {
-      const [userResponse, brandResponse, allBrandsResponse, allStoresResponse] = await Promise.all([
-        axios.get('https://3.1.81.96/api/Users?pageNumber=1&pageSize=1000&isDeleted=true'),
+      const [userResponse, brandResponse, allStoresResponse] = await Promise.all([
+        axios.get('https://3.1.81.96/api/Users?pageNumber=1&pageSize=1000'),
         axios.get('https://3.1.81.96/api/Brands/BrandStaff?pageNumber=1&pageSize=1000'),
-        axios.get('https://3.1.81.96/api/Brands?pageNumber=1&pageSize=1000'),
         axios.get('https://3.1.81.96/api/Stores?pageNumber=1&pageSize=1000') // Fetch stores
       ]);
 
-      const filteredUsers = userResponse.data.filter((user) => user.role !== 0);
+      const filteredUsers = userResponse.data.filter((user) => user.role === 2);
       const userMap = {};
       filteredUsers.forEach((user) => {
         userMap[user.userId] = user;
       });
       setUserData(userMap);
 
-      const assignedUserIds = new Set(brandResponse.data.flatMap((brand) => brand.brandStaffs.map((staff) => staff.userId)));
-
-      const updatedBrandData = brandResponse.data.map((brand) => {
-        const updatedBrandStaffs = brand.brandStaffs
-          .filter((staff) => assignedUserIds.has(staff.userId))
-          .map((staff) => ({
-            ...staff,
-            userName: userMap[staff.userId]?.userName || 'Unknown User',
-            email: userMap[staff.userId]?.email || 'Unknown Email',
-            role: userMap[staff.userId]?.role || 'Unknown Role',
-            brandName: brand.brandName
-          }));
-
-        return {
-          ...brand,
-          brandStaffs: updatedBrandStaffs
-        };
+      const storesMap = {};
+      allStoresResponse.data.forEach((store) => {
+        storesMap[store.storeId] = store.storeName;
       });
+      setStores(storesMap); // Set stores data
 
-      const unassignedUsers = filteredUsers
-        .filter((user) => !assignedUserIds.has(user.userId))
-        .map((user) => ({
-          ...user,
-          brandName: 'Unassigned'
-        }));
+      const updatedBrandData = brandResponse.data
+        .filter((brand) => brand.brandId === numericBrandId)
+        .map((brand) => {
+          const updatedBrandStaffs = brand.brandStaffs
+            .filter((staff) => userMap[staff.userId]) // Only include users with role = 2
+            .map((staff) => ({
+              ...staff,
+              userName: userMap[staff.userId]?.userName || 'Unknown User',
+              email: userMap[staff.userId]?.email || 'Unknown Email',
+              role: userMap[staff.userId]?.role || 'Unknown Role',
+              storeName: storesMap[staff.storeId]
+            }));
 
-      const allUsers = [...updatedBrandData.flatMap((brand) => brand.brandStaffs), ...unassignedUsers];
+          return {
+            ...brand,
+            brandStaffs: updatedBrandStaffs
+          };
+        });
+
+      const allUsers = updatedBrandData.flatMap((brand) => brand.brandStaffs);
+
+      const filteredStores = allStoresResponse.data.filter((store) => store.brandId === 2);
+      setFilteredStores(filteredStores);
 
       setBrandData(allUsers);
-      setBrands(allBrandsResponse.data);
-      setStores(allStoresResponse.data); // Set stores data
     } catch (err) {
       setError('Error fetching data');
     } finally {
@@ -146,19 +146,8 @@ const UtilitiesBrandStaff = () => {
     fetchData();
   }, []);
 
-  const getRoleName = (role) => {
-    switch (role) {
-      case 1:
-        return 'Brand Manager';
-      case 2:
-        return 'Store Manager';
-      default:
-        return 'User';
-    }
-  };
-
   const handleViewDetails = (staff) => {
-    navigate('/brandstaff-details', { state: { staffId: staff.userId } });
+    navigate('/staff-details', { state: { staffId: staff.userId } });
   };
 
   const handleOpen = () => {
@@ -170,26 +159,10 @@ const UtilitiesBrandStaff = () => {
     setValidationErrors({});
   };
 
-  const handleAssignOpen = (user) => {
-    setSelectedUser(user);
-    setAssignData({ ...assignData, userId: user.userId });
-    setAssignOpen(true);
-  };
-
   const handleAssignClose = () => {
     setAssignOpen(false);
     setValidationErrors({});
     setError(null);
-  };
-
-  const handleDeleteOpen = (user) => {
-    setUserToDelete(user);
-    setDeleteOpen(true);
-  };
-
-  const handleDeleteClose = () => {
-    setDeleteOpen(false);
-    setUserToDelete(null);
   };
 
   const handleChange = (e) => {
@@ -199,16 +172,13 @@ const UtilitiesBrandStaff = () => {
 
   const handleAssignChange = async (e) => {
     const { name, value } = e.target;
-    setAssignData({ ...assignData, [name]: value });
+    setAssignData({ ...assignData, storeId: value });
     setValidationErrors({ ...validationErrors, [name]: '' });
+    setError(null);
 
     if (name === 'brandId') {
-      try {
-        const response = await axios.get(`https://3.1.81.96/api/Stores?brandId=${value}`);
-        setFilteredStores(response.data);
-      } catch (err) {
-        setError('Error fetching stores for selected brand');
-      }
+      const storesForBrand = filteredStores.filter((store) => store.brandId === parseInt(value));
+      setFilteredStores(storesForBrand);
     }
   };
 
@@ -216,17 +186,19 @@ const UtilitiesBrandStaff = () => {
     if (!validateNewUserData()) {
       return;
     }
+
     try {
+      // Create the new user
       await axios.post('https://3.1.81.96/api/Auth/Register', newUser);
-      Toastify({
-        text: 'User created successfully!',
-        duration: 3000,
-        gravity: 'top',
-        position: 'right',
-        backgroundColor: 'linear-gradient(to right, #00b09b, #96c93d)'
-      }).showToast();
-      setIsLoading(true);
-      fetchData();
+
+      // Login with the newly created user
+      const loginResponse = await axios.post('https://3.1.81.96/api/Auth/Login', {
+        userName: newUser.userName,
+        password: newUser.password
+      });
+      const userId = loginResponse.data.userId;
+      setAssignData({ ...assignData, userId });
+      setAssignOpen(true);
     } catch (err) {
       setError('Error adding user');
     } finally {
@@ -250,17 +222,17 @@ const UtilitiesBrandStaff = () => {
     if (!validateAssignData()) {
       return;
     }
-    if (selectedUser?.role === 2) {
-      const existingAssignment = await checkExistingAssignment();
-      if (existingAssignment) {
-        setError('This store already has a Store Manager assigned');
-        return;
-      }
+
+    const existingAssignment = await checkExistingAssignment();
+    if (existingAssignment) {
+      setError('This store already has a Store Manager assigned');
+      return;
     }
+
     try {
       await axios.post('https://3.1.81.96/api/BrandStaffs', assignData);
       Toastify({
-        text: 'Assigned successfully!',
+        text: 'created staff successfully!',
         duration: 3000,
         gravity: 'top',
         position: 'right',
@@ -276,32 +248,12 @@ const UtilitiesBrandStaff = () => {
     }
   };
 
-  const handleDeleteUser = async () => {
-    try {
-      await axios.delete(`https://3.1.81.96/api/Users/${userToDelete.userId}`);
-      Toastify({
-        text: 'User deleted successfully!',
-        duration: 3000,
-        gravity: 'top',
-        position: 'right',
-        backgroundColor: 'linear-gradient(to right, #00b09b, #96c93d)'
-      }).showToast();
-      setIsLoading(true);
-      fetchData();
-    } catch (err) {
-      setError('Error deleting user');
-    } finally {
-      setIsLoading(false);
-      handleDeleteClose();
-    }
-  };
-
   return (
     <MainCard title={<Typography variant="h5">Brand Staff Table</Typography>}>
       <Grid container spacing={gridSpacing}>
         <Grid item xs={12}>
           <Button variant="contained" color="primary" onClick={handleOpen}>
-            Add User
+            Add Staff
           </Button>
           {isLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
@@ -314,9 +266,7 @@ const UtilitiesBrandStaff = () => {
                   <TableRow>
                     <TableCell>User Name</TableCell>
                     <TableCell>Email</TableCell>
-                    <TableCell>Role</TableCell>
-                    <TableCell>Brand Name</TableCell>
-                    <TableCell>Status</TableCell>
+                    <TableCell>Store</TableCell>
                     <TableCell>Actions</TableCell>
                   </TableRow>
                 </TableHead>
@@ -325,23 +275,11 @@ const UtilitiesBrandStaff = () => {
                     <TableRow key={staff.userId} hover>
                       <TableCell>{staff.userName}</TableCell>
                       <TableCell>{staff.email}</TableCell>
-                      <TableCell>{getRoleName(staff.role)}</TableCell>
-                      <TableCell>{staff.brandName}</TableCell>
-                      <TableCell sx={{ color: staff.isDeleted ? 'red' : 'green' }}>{staff.isDeleted ? 'Disabled' : 'Enabled'}</TableCell>
-                      <TableCell sx={{ display: 'flex', gap: 1 }}>
+                      <TableCell>{staff.storeName}</TableCell>
+                      <TableCell>
                         <Button size="small" color="primary" onClick={() => handleViewDetails(staff)}>
                           View Details
                         </Button>
-                        {staff.brandName === 'Unassigned' && staff.isDeleted === false && (
-                          <Box>
-                            <Button size="small" color="success" onClick={() => handleAssignOpen(staff)}>
-                              Assign
-                            </Button>
-                            <Button size="small" color="error" onClick={() => handleDeleteOpen(staff)}>
-                              Disable
-                            </Button>
-                          </Box>
-                        )}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -349,7 +287,7 @@ const UtilitiesBrandStaff = () => {
               </Table>
             </TableContainer>
           ) : (
-            <Typography>No brand data found.</Typography>
+            <Typography>No staff data found.</Typography>
           )}
         </Grid>
       </Grid>
@@ -392,13 +330,6 @@ const UtilitiesBrandStaff = () => {
             helperText={validationErrors.email}
             required
           />
-          <FormControl fullWidth margin="dense">
-            <InputLabel id="role-label">Role</InputLabel>
-            <Select labelId="role-label" name="role" value={newUser.role} onChange={handleChange}>
-              <MenuItem value={1}>Brand Manager</MenuItem>
-              <MenuItem value={2}>Store Manager</MenuItem>
-            </Select>
-          </FormControl>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} color="primary">
@@ -410,52 +341,29 @@ const UtilitiesBrandStaff = () => {
         </DialogActions>
       </Dialog>
       <Dialog open={assignOpen} onClose={handleAssignClose}>
-        <DialogTitle>Assign to User</DialogTitle>
+        <DialogTitle>Assign Brand to User</DialogTitle>
         <DialogContent>
           <FormControl fullWidth margin="dense">
-            <InputLabel id="brand-label">Brand</InputLabel>
+            <InputLabel id="store-label">Store</InputLabel>
             <Select
-              labelId="brand-label"
-              name="brandId"
-              value={assignData.brandId}
+              labelId="store-label"
+              name="storeId"
+              value={assignData.storeId}
               onChange={handleAssignChange}
-              error={!!validationErrors.brandId}
+              error={!!validationErrors.storeId}
             >
-              {brands.map((brand) => (
-                <MenuItem key={brand.brandId} value={brand.brandId}>
-                  {brand.brandName}
+              {filteredStores.map((store) => (
+                <MenuItem key={store.storeId} value={store.storeId}>
+                  {store.storeName}
                 </MenuItem>
               ))}
             </Select>
-            {validationErrors.brandId && (
+            {validationErrors.storeId && (
               <Typography variant="caption" color="error">
-                {validationErrors.brandId}
+                {validationErrors.storeId}
               </Typography>
             )}
           </FormControl>
-          {selectedUser?.role === 2 && (
-            <FormControl fullWidth margin="dense">
-              <InputLabel id="store-label">Store</InputLabel>
-              <Select
-                labelId="store-label"
-                name="storeId"
-                value={assignData.storeId}
-                onChange={handleAssignChange}
-                error={!!validationErrors.storeId}
-              >
-                {filteredStores.map((store) => (
-                  <MenuItem key={store.storeId} value={store.storeId}>
-                    {store.storeName}
-                  </MenuItem>
-                ))}
-              </Select>
-              {validationErrors.storeId && (
-                <Typography variant="caption" color="error">
-                  {validationErrors.storeId}
-                </Typography>
-              )}
-            </FormControl>
-          )}
           {error && (
             <Typography variant="caption" color="error">
               {error}
@@ -468,18 +376,6 @@ const UtilitiesBrandStaff = () => {
           </Button>
           <Button onClick={handleAssignSubmit} color="primary">
             Assign
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog open={deleteOpen} onClose={handleDeleteClose}>
-        <DialogTitle>Disable User</DialogTitle>
-        <DialogContent>
-          <Typography>Are you sure you want to disable this user?</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDeleteClose}>Cancel</Button>
-          <Button onClick={handleDeleteUser} color="error">
-            Disable
           </Button>
         </DialogActions>
       </Dialog>

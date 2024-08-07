@@ -90,7 +90,6 @@ const UtilitiesBrand = () => {
       Toastify({
         text: 'Error checking brand name.',
         duration: 3000,
-        close: true,
         gravity: 'top',
         position: 'right',
         backgroundColor: 'linear-gradient(to right, #ff0000, #ff6347)'
@@ -123,12 +122,16 @@ const UtilitiesBrand = () => {
           brandContactEmail: ''
         });
         setShowAddBrandDialog(false);
-        const updatedResponse = await axios.get('https://3.1.81.96/api/Brands?pageNumber=1&pageSize=10');
+        const updatedResponse = await axios.get('https://3.1.81.96/api/Brands', {
+          params: {
+            pageNumber: 1,
+            pageSize: 1000
+          }
+        });
         setBrandData(updatedResponse.data);
         Toastify({
           text: 'Brand added successfully!',
           duration: 3000,
-          close: true,
           gravity: 'top',
           position: 'right',
           backgroundColor: 'linear-gradient(to right, #00b09b, #96c93d)'
@@ -139,7 +142,6 @@ const UtilitiesBrand = () => {
         Toastify({
           text: `Error: ${response.statusText}`,
           duration: 3000,
-          close: true,
           gravity: 'top',
           position: 'right',
           backgroundColor: 'linear-gradient(to right, #ff0000, #ff6347)'
@@ -151,7 +153,6 @@ const UtilitiesBrand = () => {
       Toastify({
         text: `Error: ${error.message}`,
         duration: 3000,
-        close: true,
         gravity: 'top',
         position: 'right',
         backgroundColor: 'linear-gradient(to right, #ff0000, #ff6347)'
@@ -171,7 +172,6 @@ const UtilitiesBrand = () => {
         Toastify({
           text: 'Brand updated successfully!',
           duration: 3000,
-          close: true,
           gravity: 'top',
           position: 'right',
           backgroundColor: 'linear-gradient(to right, #00b09b, #96c93d)'

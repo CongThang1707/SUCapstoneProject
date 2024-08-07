@@ -6,10 +6,10 @@ import Loadable from 'ui-component/Loadable';
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')));
 // utilities routing
-const UtilsTypography = Loadable(lazy(() => import('views/utilities/User')));
 const UtilsMaterialIcons = Loadable(lazy(() => import('views/utilities/MaterialIcons')));
 const UtilsTablerIcons = Loadable(lazy(() => import('views/utilities/TablerIcons')));
 
+const UtilsStaffs = Loadable(lazy(() => import('views/brandmanagerutilities/Staffs')));
 const UtilsMyBrand = Loadable(lazy(() => import('views/brandmanagerutilities/MyBrand')));
 const UtilsMyProduct = Loadable(lazy(() => import('views/brandmanagerutilities/MyProduct')));
 const UtilsMyCategory = Loadable(lazy(() => import('views/brandmanagerutilities/MyCategory')));
@@ -27,6 +27,7 @@ const MyTemplateDetails = Loadable(lazy(() => import('views/sample-page/MyTempla
 const MyMenuDetails = Loadable(lazy(() => import('views/sample-page/MyMenuDetails')));
 const MyProductDetails = Loadable(lazy(() => import('views/sample-page/MyProductDetails')));
 const MyCollectionDetails = Loadable(lazy(() => import('views/sample-page/MyCollectionDetails')));
+const StaffDetails = Loadable(lazy(() => import('views/sample-page/StaffDetails')));
 
 const BrandManagerRoutes = {
   path: '/',
@@ -49,8 +50,8 @@ const BrandManagerRoutes = {
       path: 'utils',
       children: [
         {
-          path: 'util-typography',
-          element: <UtilsTypography />
+          path: 'util-staffs',
+          element: <UtilsStaffs />
         }
       ]
     },
@@ -171,6 +172,10 @@ const BrandManagerRoutes = {
     {
       path: 'my-collection-details',
       element: <MyCollectionDetails />
+    },
+    {
+      path: 'staff-details',
+      element: <StaffDetails />
     }
   ]
 };

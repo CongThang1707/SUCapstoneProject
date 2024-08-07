@@ -144,7 +144,7 @@ const MainRoutes = {
       element: <CollectionDetails />
     },
     {
-      path: 'brand-details',
+      path: 'brandstaff-details',
       element: <BrandStaffDetails />
     }
   ]
