@@ -56,12 +56,20 @@
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
     "extends": [
-      "react-app"
+      "plugin:vue/essential",
+      "eslint:recommended"
     ],
+    "parserOptions": {
+      "parser": "babel-eslint"
+    },
     "rules": {
-      "jsx-a11y/accessible-emoji": "off"
-  }
+      "no-unused-vars": "off"
+    }
   },
   "babel": {
     "presets": [
