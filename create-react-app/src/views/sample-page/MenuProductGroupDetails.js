@@ -319,6 +319,7 @@ const MenuProductGroupDetails = ({ menuDataId, brandId }) => {
     };
 
     const handleEditClick = (dialogId) => {
+      console.log("dialogId: ", dialogId);
       setOpenDialogIds({
         ...openDialogIds, // Keep other dialogs as is
         [dialogId]: true // Open this specific dialog
@@ -796,19 +797,19 @@ const MenuProductGroupDetails = ({ menuDataId, brandId }) => {
                         </TableCell>
                         <TableCell>
                           {/* Delete ProductGroupItem */}
-                          <Button style={{ color: 'red' }} onClick={handleDeleteProductGroupItemClick}>
+                          <Button style={{ color: 'red' }} onClick={() => handleEditClick(groupItem.productGroupItemId)}>
                             <DeleteIcon />
                           </Button>
 
                           {/* Dialog Delete */}
                           <Dialog
-                            open={toggleDeleteProductGroupItem}
-                            onClose={() => setToggleDeleteProductGroupItem(!toggleDeleteProductGroupItem)}
+                            open={openDialogIds[groupItem.productGroupItemId] || false}
+                            onClose={() => handleCloseDialog(groupItem.productGroupItemId)}
                           >
                             <DialogTitle variant="h4">Delete Product Group Item</DialogTitle>
                             <DialogContent>Delete product group item `{groupItem.product.productName}`</DialogContent>
                             <DialogActions>
-                              <Button onClick={() => setToggleDeleteProductGroupItem(!toggleDeleteProductGroupItem)}>Cancel</Button>
+                              <Button onClick={() => handleCloseDialog(groupItem.productGroupItemId)}>Cancel</Button>
 
                               <Button onClick={(e) => handleSubmitDeleteProductGroupItem(e, groupItem)}>OK</Button>
                             </DialogActions>
