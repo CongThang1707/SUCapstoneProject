@@ -268,6 +268,12 @@ const ProductDetails = () => {
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Typography variant="subtitle1" sx={{ mr: 1 }}>
+              Currency:
+            </Typography>
+            <Typography variant="body1">{productData.productPriceCurrency}</Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Typography variant="subtitle1" sx={{ mr: 1 }}>
               Product Description:
             </Typography>
             <Typography variant="body1">{productData.productDescription}</Typography>
@@ -304,7 +310,16 @@ const ProductDetails = () => {
                             helpertext={editingSizePrice.price === '' ? 'Price is required' : ''}
                           />
                         ) : (
-                          `$${sizePrice.price}`
+                          // `$${sizePrice.price}`
+                          productData.productPriceCurrency === 1
+                            ? sizePrice.price.toLocaleString('vi-VN', {
+                              style: 'currency',
+                              currency: 'VND'
+                            })
+                          : sizePrice.price.toLocaleString('en-US', {
+                              style: 'currency',
+                              currency: 'USD'
+                            })
                         )}
                       </TableCell>
                       <TableCell align="center">
