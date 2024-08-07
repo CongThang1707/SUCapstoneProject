@@ -22,11 +22,7 @@ import {
   TableHead,
   TableRow,
   IconButton,
-  Paper,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormControl
+  Paper
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -50,11 +46,13 @@ const MyProductDetails = () => {
 
   const validateNewSizePriceData = () => {
     const errors = {};
-    if (!newSizePriceData.productSizeType === '') {
-      errors.productSizeType = 'Product size type is required';
+    if (!newSizePriceData.productSizeType) {
+      errors.productSizeType = 'Size is required';
     }
     if (!newSizePriceData.price.trim()) {
       errors.price = 'Price is required';
+    } else if (parseFloat(newSizePriceData.price) < 0) {
+      errors.price = 'Price cannot be negative';
     }
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
@@ -82,15 +80,29 @@ const MyProductDetails = () => {
     if (!validateNewSizePriceData()) {
       return;
     }
+
+    const existingSizeTypes = productSizePrices.map(sizePrice => sizePrice.productSizeType);
+    const newSizeType = parseInt(newSizePriceData.productSizeType, 10);
+
+    if (newSizeType === 3 && existingSizeTypes.some(type => type !== 3)) {
+      setSnackbarMessage('Cannot add Normal size when "S", "M", or "L" sizes exist.');
+      setOpenSnackbar(true);
+      return;
+    } else if (newSizeType !== 3 && existingSizeTypes.includes(3)) {
+      setSnackbarMessage(`Cannot add "${getProductSizeType(newSizeType)}" size when Normal size exists.`);
+      setOpenSnackbar(true);
+      return;
+    }
+
     try {
       const response = await axios.post('https://3.1.81.96/api/ProductSizePrices', {
         productId: productData.productId,
-        productSizeType: parseInt(newSizePriceData.productSizeType, 10),
+        productSizeType: newSizeType,
         price: parseFloat(newSizePriceData.price)
       });
 
       if (response.status === 201) {
-        setProductSizePrices((prevData) => [...prevData, response.data]); // Update as an array
+        setProductSizePrices((prevData) => [...prevData, response.data]);
         setOpenSnackbar(true);
         setSnackbarMessage('Size price added successfully!');
         setShowAddSizePriceDialog(false);
@@ -237,6 +249,7 @@ const MyProductDetails = () => {
                         {editingSizePrice?.productSizePriceId === sizePrice.productSizePriceId ? (
                           <TextField
                             type="number"
+                            InputProps={{ inputProps: { min: 1 } }}
                             value={editingSizePrice.price}
                             onChange={(e) => setEditingSizePrice({ ...editingSizePrice, price: e.target.value })}
                             autoFocus
@@ -272,27 +285,34 @@ const MyProductDetails = () => {
           <DialogTitle>Add New Size Price</DialogTitle>
           <DialogContent>
             <DialogContentText>Enter the size and price details:</DialogContentText>
-            <FormControl fullWidth variant="outlined" sx={{ mt: 2 }} error={!!validationErrors.productSizeType}>
-              <InputLabel id="size-select-label">Size</InputLabel>
-              <Select
-                labelId="size-select-label"
-                id="size-select"
-                name="productSizeType"
-                value={newSizePriceData.productSizeType}
-                onChange={handleAddSizePriceChange}
-                label="Size"
-              >
-                <MenuItem value={0}>S</MenuItem>
-                <MenuItem value={1}>M</MenuItem>
-                <MenuItem value={2}>L</MenuItem>
-                <MenuItem value={3}>Normal</MenuItem>
-              </Select>
-            </FormControl>
+            <TextField
+              margin="dense"
+              id="size-select"
+              name="productSizeType"
+              label="Size"
+              type="number"
+              fullWidth
+              variant="outlined"
+              value={newSizePriceData.productSizeType}
+              onChange={handleAddSizePriceChange}
+              select
+              SelectProps={{ native: true }}
+              required
+              error={!!validationErrors.productSizeType}
+              helperText={validationErrors.productSizeType}
+            >
+              <option value="" disabled></option>
+              <option value={0}>S</option>
+              <option value={1}>M</option>
+              <option value={2}>L</option>
+              <option value={3}>Normal</option>
+            </TextField>
             <TextField
               margin="dense"
               name="price"
               label="Price"
               type="number"
+              InputProps={{ inputProps: { min: 1 } }}
               fullWidth
               variant="outlined"
               value={newSizePriceData.price}

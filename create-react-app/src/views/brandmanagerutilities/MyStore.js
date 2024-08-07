@@ -19,135 +19,116 @@ import {
   DialogContentText,
   DialogActions,
   TextField,
-  CircularProgress,
-  InputAdornment,
-  Box,
   Typography,
-  Grid
+  InputAdornment,
+  IconButton,
+  CircularProgress,
+  Box
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import { AddCircleOutlined, Visibility, Delete, Edit } from '@mui/icons-material';
+import Toastify from 'toastify-js';
+import 'toastify-js/src/toastify.css';
+import { Add } from '@mui/icons-material';
 
 const MyStore = () => {
   const [storeData, setStoreData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarMessage] = useState('');
   const [showAddStoreDialog, setShowAddStoreDialog] = useState(false);
-  const [showEditStoreDialog, setShowEditStoreDialog] = useState(false);
+  const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false);
+  const [storeToDelete, setStoreToDelete] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
+  const brandId = localStorage.getItem('brandId');
   const [newStoreData, setNewStoreData] = useState({
-    brandId: '',
+    brandId: brandId,
+    storeName: '',
     storeLocation: '',
     storeContactEmail: '',
     storeContactNumber: '',
-    isDeleted: false
+    storeStatus: true
   });
-  const [filter, setFilter] = useState('');
-  const [editStoreData, setEditStoreData] = useState({
-    storeId: '',
-    brandId: '',
-    storeLocation: '',
-    storeContactEmail: '',
-    storeContactNumber: '',
-    isDeleted: false
-  });
+  const [validationErrors, setValidationErrors] = useState({});
+
+  const validateNewStoreData = () => {
+    const errors = {};
+    if (!newStoreData.storeName.trim()) {
+      errors.storeName = 'Store name is required';
+    }
+    if (!newStoreData.storeLocation.trim()) {
+      errors.storeLocation = 'Store location is required';
+    }
+    if (!newStoreData.storeContactEmail.trim()) {
+      errors.storeContactEmail = 'Store contact email is required';
+    }
+    if (!newStoreData.storeContactNumber.trim()) {
+      errors.storeContactNumber = 'Store contact number is required';
+    }
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleAddStore = async () => {
+    if (!validateNewStoreData()) {
+      return;
+    }
+
     try {
-      // Retrieve brandId from localStorage
-      const brandId = localStorage.getItem('brandId');
-      const response = await axios.post('https://3.1.81.96/api/Stores', {
-        ...newStoreData,
-        brandId: brandId // Set brandId fetched from localStorage
-      });
+      const response = await axios.post('https://3.1.81.96/api/Stores', newStoreData);
       if (response.status === 201) {
-        // Successfully created new store
         setNewStoreData({
-          brandId: '',
+          storeName: '',
           storeLocation: '',
           storeContactEmail: '',
           storeContactNumber: '',
-          isDeleted: false
+          storeStatus: true
         });
         setShowAddStoreDialog(false);
-        fetchStoreData(); // Refresh store list
-        setOpenSnackbar(true);
-        setSnackbarMessage('Store added successfully!');
+        fetchStoreData();
+        Toastify({
+          text: 'Store created successfully!',
+          duration: 3000,
+          gravity: 'top',
+          position: 'right',
+          backgroundColor: 'linear-gradient(to right, #00b09b, #96c93d)'
+        }).showToast();
       } else {
         console.error('Error creating store:', response);
-        setError(response.statusText);
+        setError(`Error: ${response.statusText}`);
       }
     } catch (error) {
       console.error('Error creating store:', error);
-      setError(error.message);
-    }
-  };
-
-  const handleEditStore = async () => {
-    try {
-      const response = await axios.put(`https://3.1.81.96/api/Stores/${editStoreData.storeId}`, {
-        ...editStoreData,
-        brandId: localStorage.getItem('brandId') // Ensure brandId is included in the update payload
-      });
-      if (response.status === 200) {
-        // Successfully updated store
-        setShowEditStoreDialog(false);
-        fetchStoreData();
-        setOpenSnackbar(true);
-        setSnackbarMessage('Store updated successfully!');
-      } else {
-        console.error('Error updating store:', response);
-        setError(response.statusText);
-      }
-    } catch (error) {
-      console.error('Error updating store:', error);
-      setError(error.message);
+      setError(`Error: ${error.message}`);
     }
   };
 
   const handleChange = (event) => {
     const { name, value } = event.target;
     setNewStoreData((prevState) => ({ ...prevState, [name]: value }));
-  };
-
-  const handleEditChange = (event) => {
-    const { name, value } = event.target;
-    setEditStoreData((prevState) => ({ ...prevState, [name]: value }));
+    setValidationErrors((prevErrors) => ({ ...prevErrors, [name]: '' }));
   };
 
   const handleCloseAddStoreDialog = () => {
     setShowAddStoreDialog(false);
-  };
-
-  const handleCloseEditStoreDialog = () => {
-    setShowEditStoreDialog(false);
-  };
-
-  const handleEditClick = (store) => {
-    setEditStoreData(store);
-    setShowEditStoreDialog(true);
+    setValidationErrors({});
   };
 
   const fetchStoreData = async () => {
     setIsLoading(true);
-    setError(null);
     try {
       const brandId = localStorage.getItem('brandId');
-      const response = await axios.get('https://3.1.81.96/api/Stores', {
+      const storeResponse = await axios.get('https://3.1.81.96/api/Stores', {
         params: {
           brandId: brandId,
           pageNumber: 1,
-          pageSize: 10 // Adjust pageSize as needed
+          pageSize: 1000
         }
       });
-      if (!response.data) {
-        throw new Error('Missing data from API response');
-      }
-      setStoreData(response.data);
+      setStoreData(storeResponse.data);
     } catch (error) {
-      console.error('Error fetching store data:', error);
+      console.error('Error fetching data:', error);
       setError(error.message);
     } finally {
       setIsLoading(false);
@@ -156,163 +137,217 @@ const MyStore = () => {
 
   useEffect(() => {
     fetchStoreData();
-  }, []); // Empty dependency array ensures useEffect runs only once on component mount
+  }, []);
 
-  const handleDelete = async (storeId) => {
+  const handleDelete = async () => {
     try {
-      const response = await axios.delete(`https://3.1.81.96/api/Stores/${storeId}`);
+      const response = await axios.delete(`https://3.1.81.96/api/Stores/${storeToDelete.storeId}`);
+
       if (response.status === 200) {
-        // Successfully deleted store
-        setStoreData(storeData.filter((store) => store.storeId !== storeId));
-        setOpenSnackbar(true);
-        setSnackbarMessage('Store deleted successfully!');
+        setStoreData(storeData.filter((store) => store.storeId !== storeToDelete.storeId));
+        setShowDeleteConfirmDialog(false);
+        Toastify({
+          text: 'Store deleted successfully!',
+          duration: 3000,
+          close: true,
+          gravity: 'top',
+          position: 'right',
+          backgroundColor: 'linear-gradient(to right, #00b09b, #96c93d)'
+        }).showToast();
       } else {
         console.error('Error deleting store:', response);
-        setError(response.statusText);
+        setError(`Error: ${response.statusText}`);
       }
     } catch (error) {
       console.error('Error deleting store:', error);
-      setError(error.message);
+      setError(`Error: ${error.message}`);
     }
   };
 
   const handleViewDetails = (store) => {
-    navigate('/store-details', { state: { storeData: store } });
+    navigate(`/my-store-details`, { state: { storeId: store.storeId } });
   };
 
-  const filteredStoreData = storeData.filter((store) => {
-    const storeLocationMatch = store.storeLocation?.toLowerCase().includes(filter.toLowerCase());
-    const brandIdMatch = store.brandId?.toString().includes(filter.toLowerCase());
-    return storeLocationMatch || brandIdMatch;
-  });
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
+  };
+
+  const filteredStoreData = storeData.filter(
+    (store) =>
+      store.storeCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      store.storeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      store.storeLocation.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <Box sx={{ flexGrow: 1, p: 3 }}>
-      <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <MainCard title={<Typography variant="h5">Store Table</Typography>}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <TextField
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                variant="outlined"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
-                  )
-                }}
-                sx={{
-                  width: '500px',
-                  mr: 60, // Set a fixed width (adjust as needed)
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    paddingRight: 1
-                  }
-                }}
-              />
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => setShowAddStoreDialog(true)}
-                startIcon={<AddCircleOutlined />}
-                sx={{
-                  borderRadius: 2,
-                  boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  px: 2, // Increase horizontal padding further
-                  py: 1.5,
-                  whiteSpace: 'nowrap' // Prevent text from wrapping
-                }}
-                size="small"
-              >
-                Add Store
-              </Button>
-            </Box>
-            {isLoading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
-                <CircularProgress />
-              </div>
-            ) : error ? (
-              <p>{error}</p>
-            ) : (
-              <TableContainer component={Paper} sx={{ maxHeight: 450, overflowY: 'auto' }}>
-                <Table stickyHeader aria-label="sticky table">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Store Location</TableCell>
-                      <TableCell>Email</TableCell>
-                      <TableCell>Phone number</TableCell>
-                      <TableCell>Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {filteredStoreData.map((store) => (
-                      <TableRow key={store.storeId}>
-                        <TableCell>{store.storeLocation}</TableCell>
-                        <TableCell>{store.storeContactEmail}</TableCell>
-                        <TableCell>{store.storeContactNumber}</TableCell>
-                        <TableCell sx={{ display: 'flex', gap: 1 }}>
-                          <Button
-                            variant="outlined"
-                            color="info"
-                            size="small"
-                            onClick={() => handleViewDetails(store)}
-                            startIcon={<Visibility />}
-                            sx={{
-                              color: 'info.main',
-                              borderColor: 'info.main',
-                              '&:hover': {
-                                backgroundColor: 'info.light'
-                              }
-                            }}
-                          >
-                            View Details
-                          </Button>
-                          <Button
-                            variant="outlined"
-                            color="primary"
-                            size="small"
-                            onClick={() => handleEditClick(store)}
-                            startIcon={<Edit />}
-                            sx={{
-                              color: 'primary.main',
-                              borderColor: 'primary.main',
-                              '&:hover': {
-                                backgroundColor: 'primary.light'
-                              }
-                            }}
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            variant="outlined"
-                            color="error"
-                            size="small"
-                            onClick={() => handleDelete(store.storeId)}
-                            startIcon={<Delete />}
-                            sx={{
-                              color: 'error.main',
-                              borderColor: 'error.main',
-                              '&:hover': {
-                                backgroundColor: 'error.light'
-                              }
-                            }}
-                          >
-                            Delete
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
-          </MainCard>
-        </Grid>
-      </Grid>
+    <div>
+      <MainCard title="Store Table">
+        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          <TextField
+            variant="outlined"
+            size="small"
+            value={searchQuery}
+            onChange={handleSearchChange}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <IconButton disabled sx={{ p: 0 }}>
+                    <SearchIcon />
+                  </IconButton>
+                </InputAdornment>
+              )
+            }}
+          />
+          <Button
+            variant="contained"
+            onClick={() => setShowAddStoreDialog(true)}
+            sx={{ mb: 2, color: 'white' }}
+            startIcon={<Add />}
+            color="success"
+          >
+            Add Store
+          </Button>
+        </Box>
+        {isLoading ? (
+          <Typography variant="h6" color="textSecondary" sx={{ textAlign: 'center' }}>
+            <CircularProgress />
+          </Typography>
+        ) : error ? (
+          <p>{error}</p>
+        ) : (
+          <TableContainer component={Paper}>
+            <Table sx={{ minWidth: 650 }}>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Store Code</TableCell>
+                  <TableCell>Store Name</TableCell>
+                  <TableCell>Location</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredStoreData.map((store) => (
+                  <TableRow key={store.storeId}>
+                    <TableCell>{store.storeCode}</TableCell>
+                    <TableCell>{store.storeName}</TableCell>
+                    <TableCell>{store.storeLocation}</TableCell>
+                    <TableCell>
+                      <Typography style={{ color: store.storeStatus ? 'green' : 'red' }}>{store.storeStatus ? 'True' : 'False'}</Typography>
+                    </TableCell>
+                    <TableCell sx={{ display: 'flex', gap: 1 }}>
+                      <Button
+                        variant="contained"
+                        color="error"
+                        size="small"
+                        onClick={() => {
+                          setStoreToDelete(store);
+                          setShowDeleteConfirmDialog(true);
+                        }}
+                      >
+                        Delete
+                      </Button>
+                      <Button variant="contained" size="small" onClick={() => handleViewDetails(store)}>
+                        View Details
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+        <Dialog
+          open={showAddStoreDialog}
+          onClose={handleCloseAddStoreDialog}
+          aria-labelledby="add-store-dialog-title"
+          aria-describedby="add-store-dialog-description"
+        >
+          <DialogTitle id="add-store-dialog-title">Add New Store</DialogTitle>
+          <DialogContent>
+            <DialogContentText id="add-store-dialog-description">Please enter the details of the new store.</DialogContentText>
+            <TextField
+              margin="dense"
+              name="storeName"
+              label="Store Name"
+              type="text"
+              fullWidth
+              variant="outlined"
+              value={newStoreData.storeName}
+              onChange={handleChange}
+              required
+              error={!!validationErrors.storeName}
+              helperText={validationErrors.storeName}
+            />
+            <TextField
+              margin="dense"
+              name="storeLocation"
+              label="Store Location"
+              type="text"
+              fullWidth
+              variant="outlined"
+              value={newStoreData.storeLocation}
+              onChange={handleChange}
+              required
+              error={!!validationErrors.storeLocation}
+              helperText={validationErrors.storeLocation}
+            />
+            <TextField
+              margin="dense"
+              name="storeContactEmail"
+              label="Store Contact Email"
+              type="email"
+              fullWidth
+              variant="outlined"
+              value={newStoreData.storeContactEmail}
+              onChange={handleChange}
+              required
+              error={!!validationErrors.storeContactEmail}
+              helperText={validationErrors.storeContactEmail}
+            />
+            <TextField
+              margin="dense"
+              name="storeContactNumber"
+              label="Store Contact Number"
+              type="text"
+              fullWidth
+              variant="outlined"
+              value={newStoreData.storeContactNumber}
+              onChange={handleChange}
+              required
+              error={!!validationErrors.storeContactNumber}
+              helperText={validationErrors.storeContactNumber}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseAddStoreDialog}>Cancel</Button>
+            <Button variant="contained" onClick={handleAddStore}>
+              Add Store
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog
+          open={showDeleteConfirmDialog}
+          onClose={() => setShowDeleteConfirmDialog(false)}
+          aria-labelledby="delete-confirm-dialog-title"
+          aria-describedby="delete-confirm-dialog-description"
+        >
+          <DialogTitle id="delete-confirm-dialog-title">Confirm Deletion</DialogTitle>
+          <DialogContent>
+            <DialogContentText id="delete-confirm-dialog-description">
+              Are you sure you want to delete this store? This action cannot be undone.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowDeleteConfirmDialog(false)}>Cancel</Button>
+            <Button variant="contained" color="error" onClick={handleDelete}>
+              Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </MainCard>
+
       <Snackbar
         open={openSnackbar}
         autoHideDuration={6000}
@@ -321,101 +356,7 @@ const MyStore = () => {
       >
         <Alert severity={snackbarMessage ? 'success' : 'error'}>{snackbarMessage}</Alert>
       </Snackbar>
-      <Dialog
-        open={showAddStoreDialog}
-        onClose={handleCloseAddStoreDialog}
-        aria-labelledby="add-store-dialog-title"
-        aria-describedby="add-store-dialog-description"
-      >
-        <DialogTitle id="add-store-dialog-title">Add New Store</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="add-store-dialog-description">Please enter the details of the new store.</DialogContentText>
-          <TextField
-            margin="dense"
-            name="storeLocation"
-            label="Store Location"
-            type="text"
-            fullWidth
-            variant="standard"
-            value={newStoreData.storeLocation}
-            onChange={handleChange}
-          />
-          <TextField
-            margin="dense"
-            name="storeContactEmail"
-            label="Store Contact Email"
-            type="email"
-            fullWidth
-            variant="standard"
-            value={newStoreData.storeContactEmail}
-            onChange={handleChange}
-          />
-          <TextField
-            margin="dense"
-            name="storeContactNumber"
-            label="Store Contact Number"
-            type="text"
-            fullWidth
-            variant="standard"
-            value={newStoreData.storeContactNumber}
-            onChange={handleChange}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseAddStoreDialog}>Cancel</Button>
-          <Button variant="contained" onClick={handleAddStore}>
-            Add Store
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog
-        open={showEditStoreDialog}
-        onClose={handleCloseEditStoreDialog}
-        aria-labelledby="edit-store-dialog-title"
-        aria-describedby="edit-store-dialog-description"
-      >
-        <DialogTitle id="edit-store-dialog-title">Edit Store</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="edit-store-dialog-description">Please update the details of the store.</DialogContentText>
-          <TextField
-            margin="dense"
-            name="storeLocation"
-            label="Store Location"
-            type="text"
-            fullWidth
-            variant="standard"
-            value={editStoreData.storeLocation}
-            onChange={handleEditChange}
-          />
-          <TextField
-            margin="dense"
-            name="storeContactEmail"
-            label="Store Contact Email"
-            type="email"
-            fullWidth
-            variant="standard"
-            value={editStoreData.storeContactEmail}
-            onChange={handleEditChange}
-          />
-          <TextField
-            margin="dense"
-            name="storeContactNumber"
-            label="Store Contact Number"
-            type="text"
-            fullWidth
-            variant="standard"
-            value={editStoreData.storeContactNumber}
-            onChange={handleEditChange}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseEditStoreDialog}>Cancel</Button>
-          <Button variant="contained" onClick={handleEditStore}>
-            Save Changes
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+    </div>
   );
 };
 
