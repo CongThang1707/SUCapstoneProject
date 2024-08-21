@@ -52,8 +52,16 @@ const EntityMenu = () => {
   const [showEditMenuDialog, setShowEditMenuDialog] = useState(false);
   const [editingMenu, setEditingMenu] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
-  const filteredMenus = menuData.filter((menu) => menu.menuName.toLowerCase().includes(filter.toLowerCase()));
 
+  const [selectedBrandId, setSelectedBrandId] = useState('');
+  const handleBrandChange = (event) => {
+    setSelectedBrandId(event.target.value);
+  };
+  const filteredMenus = menuData.filter(
+    (menu) =>
+      menu.menuName.toLowerCase().includes(filter.toLowerCase()) &&
+      (selectedBrandId === '' || menu.brandId === parseInt(selectedBrandId))
+  );
   const validateNewMenuData = () => {
     const errors = {};
     if (!newMenuData.brandId) {
@@ -219,24 +227,40 @@ const EntityMenu = () => {
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             variant="outlined"
-            sx={{ marginBottom: '16px' }} // Add flexGrow to take up available space
+            sx={{ marginBottom: '16px' }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
                   <SearchIcon />
                 </InputAdornment>
               )
-            }} // Add flexGrow to take up available space
+            }}
           />
+
+          <TextField
+            select
+            label="Filter by Brand"
+            value={selectedBrandId}
+            onChange={handleBrandChange}
+            variant="outlined"
+            sx={{ marginLeft: '16px', marginBottom: '16px' }}
+          >
+            <MenuItem value="">
+              <em>All Brands</em>
+            </MenuItem>
+            {brandData.map((brand) => (
+              <MenuItem key={brand.brandId} value={brand.brandId}>
+                {brand.brandName}
+              </MenuItem>
+            ))}
+          </TextField>
+
           <Button
             variant="contained"
             color="success"
             onClick={() => setShowAddMenuDialog(true)}
             startIcon={<AddCircleOutlined />}
-            sx={{
-              mb: 2, // Add margin bottom
-              color: 'white'
-            }}
+            sx={{ mb: 2, color: 'white' }}
           >
             Add Menu
           </Button>
