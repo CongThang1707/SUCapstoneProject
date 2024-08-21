@@ -19,6 +19,7 @@ import {
   InputAdornment,
   Snackbar,
   CardMedia,
+  MenuItem,
   FormHelperText,
   Input
 } from '@mui/material';
@@ -50,14 +51,23 @@ const EntityCollection = () => {
     collectionDescription: '',
     collectionBackgroundImgPath: ''
   });
-  const filteredCollectionData = collectionData.filter((collection) => {
-    const collectionNameMatch = collection.collectionName?.toLowerCase().includes(filter.toLowerCase());
-    const brandIdMatch = collection.brandId?.toString().includes(filter.toLowerCase());
-    return collectionNameMatch || brandIdMatch;
-  });
+  const [selectedBrandId, setSelectedBrandId] = useState('');
+  const handleBrandChange = (event) => {
+    setSelectedBrandId(event.target.value);
+  };
+  //  const filteredCollectionData = collectionData.filter((collection) => {
+  //   const collectionNameMatch = collection.collectionName?.toLowerCase().includes(filter.toLowerCase());
+  //   const brandIdMatch = selectedBrandId ? collection.brandId?.toString() === selectedBrandId : true;
+  //   return collectionNameMatch && brandIdMatch;
+  // });
+
+  const filteredCollectionData = collectionData.filter((collection) =>
+  collection.collectionName.toLowerCase().includes(filter.toLowerCase()) &&
+   (selectedBrandId === '' || collection.brandId === parseInt(selectedBrandId))
+  );
   const [validationErrors, setValidationErrors] = useState({});
   const [collectionBackgroundImgPath, setCollectionBackgroundImgPath] = useState(false);
-
+  
   const validateNewCollectionData = () => {
     const errors = {};
     if (!newCollectionData.brandId) {
@@ -253,14 +263,12 @@ const EntityCollection = () => {
   return (
     <>
       <MainCard title="Collections">
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <TextField
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             variant="outlined"
-            sx={{
-              marginBottom: '16px'
-            }}
+            sx={{ marginBottom: '16px' }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -269,15 +277,31 @@ const EntityCollection = () => {
               )
             }}
           />
+
+          <TextField
+            select
+            label="Filter by Brand"
+            value={selectedBrandId}
+            onChange={handleBrandChange}
+            variant="outlined"
+            sx={{ marginLeft: '16px', marginBottom: '16px' }}
+          >
+            <MenuItem value="">
+              <em>All Brands</em>
+            </MenuItem>
+            {brandData.map((brand) => (
+              <MenuItem key={brand.brandId} value={brand.brandId}>
+                {brand.brandName}
+              </MenuItem>
+            ))}
+          </TextField>
+
           <Button
             variant="contained"
             color="success"
             onClick={() => setShowAddCollectionDialog(true)}
             startIcon={<AddCircleOutlined />}
-            sx={{
-              mb: 2,
-              color: 'white'
-            }}
+            sx={{ mb: 2, color: 'white' }}
           >
             Add Collection
           </Button>

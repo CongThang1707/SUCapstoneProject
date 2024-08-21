@@ -56,6 +56,11 @@ const EntityTemplate = () => {
   const [showEditTemplateDialog, setShowEditTemplateDialog] = useState(false);
   const [editTemplateData, setEditTemplateData] = useState({});
   const [templateImgPath, setTemplateImgPath] = useState(false);
+  const [selectedBrand, setSelectedBrand] = useState('');
+
+  const handleBrandChange = (event) => {
+    setSelectedBrand(event.target.value);
+  };
 
   const validateNewTemplateData = () => {
     const errors = {};
@@ -94,7 +99,6 @@ const EntityTemplate = () => {
     if (!validateNewTemplateData()) {
       return;
     }
-
     try {
       const response = await axios.post('https://3.1.81.96/api/Templates', { ...newTemplateData, templateImgPath: templateImgPath });
       if (response.status === 201) {
@@ -250,8 +254,10 @@ const EntityTemplate = () => {
     fetchData();
   }, []);
 
-  const filteredTemplates = templateData.filter((template) => template.templateName.toLowerCase().includes(filter.toLowerCase()));
-
+  const filteredTemplates = templateData.filter((template) =>
+  template.templateName.toLowerCase().includes(filter.toLowerCase()) &&
+  (selectedBrand === '' || template.brandId === selectedBrand)
+);
   const handleImageUpload = async (event) => {
     const userId = 469;
     const file = event.target.files[0];
@@ -297,30 +303,49 @@ const EntityTemplate = () => {
   return (
     <>
       <MainCard title="Templates">
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <TextField
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            variant="outlined"
-            sx={{ marginBottom: '16px' }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              )
-            }}
-          />
-          <Button
-            variant="contained"
-            color="success"
-            onClick={() => setShowAddTemplateDialog(true)}
-            startIcon={<AddCircleOutlined />}
-            sx={{ mb: 2, color: 'white' }}
-          >
-            Add Template
-          </Button>
-        </Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+    <TextField
+      select
+      label="Filter by Brand"
+      value={selectedBrand}
+      onChange={handleBrandChange}
+      variant="outlined"
+      sx={{ marginBottom: '16px', marginRight: '16px' }}
+    >
+      <MenuItem value="">
+        <em>All Brands</em>
+      </MenuItem>
+      {brandData.map((brand) => (
+        <MenuItem key={brand.brandId} value={brand.brandId}>
+          {brand.brandName}
+        </MenuItem>
+      ))}
+    </TextField>
+    <TextField
+      value={filter}
+      onChange={(e) => setFilter(e.target.value)}
+      variant="outlined"
+      sx={{ marginBottom: '16px' }}
+      InputProps={{
+        startAdornment: (
+          <InputAdornment position="start">
+            <SearchIcon />
+          </InputAdornment>
+        )
+      }}
+    />
+  </Box>
+  <Button
+    variant="contained"
+    color="success"
+    onClick={() => setShowAddTemplateDialog(true)}
+    startIcon={<AddCircleOutlined />}
+    sx={{ mb: 2, color: 'white' }}
+  >
+    Add Template
+  </Button>
+</Box>
 
         {isLoading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
