@@ -30,7 +30,7 @@ const MenuDetails = () => {
     const fetchCategories = async () => {
       try {
         const response = await axios.get('https://3.1.81.96/api/Categories?pageNumber=1&pageSize=100'); // Replace with your API endpoint
-        setCategories(response.data); // Assuming response.data is an array of categories
+        setCategories(response.data); 
       } catch (error) {
         console.error('Error fetching categories:', error);
         setError('An error occurred while fetching categories.');
